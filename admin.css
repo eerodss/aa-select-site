@@ -1,0 +1,396 @@
+/* ==========================================================
+   A&A Select Importados | Estilos do painel (admin.html)
+   Reaproveita as variáveis de cor do style.css
+   ========================================================== */
+
+[hidden] {
+  display: none !important;
+}
+
+/* Login */
+.login {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px 20px;
+}
+
+.login-card {
+  width: min(400px, 100%);
+  display: grid;
+  gap: 14px;
+  padding: 36px 30px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  text-align: center;
+}
+
+.login-card h1 {
+  font-size: 30px;
+  margin-bottom: 6px;
+}
+
+.back {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.back:hover {
+  color: var(--accent);
+}
+
+.form-error {
+  margin: 0;
+  min-height: 1em;
+  font-size: 13px;
+  color: #c0392b;
+}
+
+/* Cabeçalho do painel */
+.bar-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.link {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.link:hover {
+  color: var(--accent);
+}
+
+.btn.small {
+  padding: 10px 18px;
+  font-size: 12px;
+  margin-left: 0;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+/* Painel */
+.dash {
+  padding-top: 40px;
+  padding-bottom: 80px;
+}
+
+.dash-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.dash-head h1 {
+  font-size: clamp(32px, 5vw, 46px);
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.stat {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 18px 20px;
+}
+
+.stat b {
+  display: block;
+  font: 700 28px "PT Serif", serif;
+}
+
+.stat span {
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.tools select {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--text);
+  padding: 13px 18px;
+  border-radius: 99px;
+  font: 400 14px Montserrat, sans-serif;
+}
+
+/* Tabela */
+.table-wrap {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+th {
+  text-align: left;
+  padding: 14px 16px;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+
+td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+}
+
+tr:last-child td {
+  border-bottom: 0;
+}
+
+tr.off td:not(:last-child) {
+  opacity: 0.5;
+}
+
+.name {
+  font-weight: 600;
+  min-width: 180px;
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.table-empty {
+  text-align: center;
+  color: var(--muted);
+  padding: 40px 16px;
+  margin: 0;
+}
+
+.thumb {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  font: 700 20px "PT Serif", serif;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+}
+
+.thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.thumb.big {
+  width: 96px;
+  height: 96px;
+  font-size: 36px;
+  flex-shrink: 0;
+}
+
+.row-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.icon-btn {
+  background: none;
+  border: 1px solid var(--line);
+  color: var(--text);
+  padding: 8px 14px;
+  border-radius: 10px;
+  font: 500 12px Montserrat, sans-serif;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.icon-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.icon-btn.danger:hover {
+  border-color: #c0392b;
+  color: #c0392b;
+}
+
+/* Interruptor de visibilidade */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 42px;
+  height: 24px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  position: absolute;
+  inset: 0;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.switch i {
+  position: absolute;
+  inset: 0;
+  background: var(--line);
+  border-radius: 99px;
+  transition: background 0.2s;
+}
+
+.switch i::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.2s;
+}
+
+.switch input:checked + i {
+  background: var(--accent);
+}
+
+.switch input:checked + i::after {
+  transform: translateX(18px);
+}
+
+/* Modal */
+dialog {
+  width: min(520px, calc(100% - 32px));
+  max-height: calc(100vh - 32px);
+  overflow: auto;
+  padding: 28px;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+}
+
+dialog::backdrop {
+  background: rgba(0, 0, 0, 0.55);
+}
+
+dialog h2 {
+  font-size: 30px;
+  margin-bottom: 18px;
+}
+
+dialog form {
+  display: grid;
+  gap: 16px;
+  max-width: none;
+}
+
+dialog label {
+  display: grid;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+dialog input:not([type="checkbox"]):not([type="file"]) {
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 400;
+  color: var(--text);
+}
+
+.two {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.image-field {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.image-field .btn {
+  margin-right: 8px;
+  cursor: pointer;
+}
+
+.hint {
+  margin: 10px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+label.check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+label.check input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.actions .btn.ghost {
+  margin-left: 0;
+}
+
+@media (max-width: 780px) {
+  .stats {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .two {
+    grid-template-columns: 1fr;
+  }
+
+  .hide-sm {
+    display: none;
+  }
+}

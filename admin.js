@@ -1,0 +1,425 @@
+/* ==========================================================
+   A&A Select Importados | Painel de produtos
+   Login, listagem, cadastro, edição, exclusão e upload de foto.
+   ========================================================== */
+
+const cfg = window.APP_CONFIG || {};
+const BUCKET = "products";
+const IMAGE_MAX_SIDE = 900; // px (a foto é reduzida antes de enviar)
+
+const $ = (id) => document.getElementById(id);
+
+const formatBRL = (value) =>
+  Number(value).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+const esc = (text) =>
+  String(text).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+
+const initialOf = (name) =>
+  name.replace(/^Body Splash (VS )?(Victoria.s Secret )?/i, "").charAt(0).toUpperCase();
+
+/* ----------------------------------------------------------
+   ESTADO
+   ---------------------------------------------------------- */
+const state = {
+  products: [],
+  term: "",
+  category: "Todas",
+  editing: null, // produto sendo editado (null = novo)
+  newFile: null, // arquivo de imagem escolhido (já reduzido)
+  removeImage: false,
+};
+
+/* ----------------------------------------------------------
+   SUPABASE
+   ---------------------------------------------------------- */
+const isConfigured = Boolean(cfg.SUPABASE_URL) && !cfg.SUPABASE_URL.startsWith("COLE");
+const db = isConfigured && window.supabase ? window.supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY) : null;
+
+/* ----------------------------------------------------------
+   AVISO (TOAST)
+   ---------------------------------------------------------- */
+let toastTimer;
+
+function showToast(message) {
+  const el = $("toast");
+  el.textContent = message;
+  el.classList.add("on");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove("on"), 2200);
+}
+
+/* ----------------------------------------------------------
+   TELAS: login x painel
+   ---------------------------------------------------------- */
+function showView(name) {
+  $("loginView").hidden = name !== "login";
+  $("dashView").hidden = name !== "dash";
+}
+
+let currentUserId = null;
+
+async function handleSession(session) {
+  const id = session ? session.user.id : null;
+  if (id === currentUserId && currentUserId !== null) return; // renovação de token, nada a fazer
+  currentUserId = id;
+
+  if (session) {
+    showView("dash");
+    await loadProducts();
+  } else {
+    showView("login");
+  }
+}
+
+function setupAuth() {
+  $("loginForm").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const btn = $("loginBtn");
+    $("loginError").textContent = "";
+    btn.disabled = true;
+    btn.textContent = "Entrando...";
+
+    const { error } = await db.auth.signInWithPassword({
+      email: $("email").value.trim(),
+      password: $("password").value,
+    });
+
+    btn.disabled = false;
+    btn.textContent = "Entrar";
+    if (error) $("loginError").textContent = "E-mail ou senha incorretos.";
+  });
+
+  $("logoutBtn").addEventListener("click", () => db.auth.signOut());
+
+  db.auth.onAuthStateChange((_event, session) => handleSession(session));
+}
+
+/* ----------------------------------------------------------
+   DADOS
+   ---------------------------------------------------------- */
+async function loadProducts() {
+  const { data, error } = await db.from("products").select("*").order("seq", { ascending: true });
+
+  if (error) {
+    console.error(error);
+    showToast("Erro ao carregar produtos");
+    return;
+  }
+
+  state.products = data;
+  render();
+}
+
+/* ----------------------------------------------------------
+   LISTAGEM
+   ---------------------------------------------------------- */
+function getVisible() {
+  return state.products.filter(
+    (p) =>
+      (state.category === "Todas" || p.category === state.category) &&
+      p.name.toLowerCase().includes(state.term)
+  );
+}
+
+function renderStats() {
+  const total = state.products.length;
+  const active = state.products.filter((p) => p.active).length;
+  const noPrice = state.products.filter((p) => p.price === null).length;
+  const cats = new Set(state.products.map((p) => p.category)).size;
+
+  const items = [
+    [total, "Produtos"],
+    [active, "Visíveis no site"],
+    [noPrice, "Sem preço"],
+    [cats, "Categorias"],
+  ];
+
+  $("stats").innerHTML = items.map(([n, label]) => `<div class="stat"><b>${n}</b><span>${label}</span></div>`).join("");
+}
+
+function renderFilter() {
+  const cats = ["Todas", ...new Set(state.products.map((p) => p.category))];
+  if (!cats.includes(state.category)) state.category = "Todas";
+
+  $("filterCategory").innerHTML = cats
+    .map((c) => `<option value="${esc(c)}"${c === state.category ? " selected" : ""}>${esc(c)}</option>`)
+    .join("");
+
+  /* Sugestões do formulário: categorias existentes + sugeridas */
+  const suggestions = new Set([...(cfg.CATEGORY_SUGGESTIONS || []), ...state.products.map((p) => p.category)]);
+  $("categoryList").innerHTML = [...suggestions].map((c) => `<option value="${esc(c)}"></option>`).join("");
+}
+
+function thumbHTML(product) {
+  return product.image_url
+    ? `<div class="thumb"><img src="${esc(product.image_url)}" alt="" loading="lazy" /></div>`
+    : `<div class="thumb">${esc(initialOf(product.name))}</div>`;
+}
+
+function renderRows() {
+  const list = getVisible();
+
+  $("rows").innerHTML = list
+    .map(
+      (p) => `
+      <tr class="${p.active ? "" : "off"}">
+        <td>${thumbHTML(p)}</td>
+        <td class="name">${esc(p.name)}</td>
+        <td class="muted">${esc(p.category)}</td>
+        <td class="nowrap">${p.price === null ? '<span class="muted">Sob consulta</span>' : formatBRL(p.price)}</td>
+        <td>
+          <label class="switch" title="Mostrar ou ocultar no site">
+            <input type="checkbox" data-toggle="${p.id}" ${p.active ? "checked" : ""} aria-label="Visível no site" />
+            <i></i>
+          </label>
+        </td>
+        <td>
+          <div class="row-actions">
+            <button class="icon-btn" data-edit="${p.id}">Editar</button>
+            <button class="icon-btn danger" data-delete="${p.id}">Excluir</button>
+          </div>
+        </td>
+      </tr>`
+    )
+    .join("");
+
+  const empty = $("tableEmpty");
+  empty.style.display = list.length ? "none" : "block";
+  empty.textContent = state.products.length ? "Nenhum produto encontrado." : "Nenhum produto cadastrado ainda.";
+}
+
+function render() {
+  renderStats();
+  renderFilter();
+  renderRows();
+}
+
+/* ----------------------------------------------------------
+   IMAGEM: reduz no navegador antes de enviar
+   ---------------------------------------------------------- */
+function resizeImage(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+
+    img.onload = () => {
+      const scale = Math.min(1, IMAGE_MAX_SIDE / Math.max(img.width, img.height));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(img.width * scale);
+      canvas.height = Math.round(img.height * scale);
+      canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+      URL.revokeObjectURL(url);
+      canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error("Falha ao processar a imagem"))), "image/jpeg", 0.85);
+    };
+
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("Arquivo de imagem inválido"));
+    };
+
+    img.src = url;
+  });
+}
+
+/* Caminho do arquivo dentro do bucket, a partir da URL pública */
+function storagePathFromUrl(url) {
+  const marker = `/object/public/${BUCKET}/`;
+  const i = url ? url.indexOf(marker) : -1;
+  return i === -1 ? null : decodeURIComponent(url.slice(i + marker.length).split("?")[0]);
+}
+
+async function uploadImage(blob) {
+  const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
+  const { error } = await db.storage.from(BUCKET).upload(path, blob, { contentType: "image/jpeg", cacheControl: "31536000" });
+  if (error) throw error;
+  return db.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
+}
+
+async function deleteImage(url) {
+  const path = storagePathFromUrl(url);
+  if (path) await db.storage.from(BUCKET).remove([path]);
+}
+
+/* ----------------------------------------------------------
+   MODAL: adicionar / editar
+   ---------------------------------------------------------- */
+function renderPreview(src, fallback) {
+  $("fPreview").innerHTML = src ? `<img src="${esc(src)}" alt="" />` : esc(fallback || "+");
+  $("fRemoveImg").hidden = !src;
+}
+
+function openModal(product) {
+  state.editing = product || null;
+  state.newFile = null;
+  state.removeImage = false;
+
+  $("modalTitle").textContent = product ? "Editar produto" : "Novo produto";
+  $("fName").value = product ? product.name : "";
+  $("fPrice").value = product && product.price !== null ? String(product.price).replace(".", ",") : "";
+  $("fCategory").value = product ? product.category : "";
+  $("fActive").checked = product ? product.active : true;
+  $("fFile").value = "";
+  $("formError").textContent = "";
+  renderPreview(product ? product.image_url : null, product ? initialOf(product.name) : "+");
+
+  $("modal").showModal();
+}
+
+function parsePrice(text) {
+  const clean = text.trim().replace(/[R$\s]/g, "");
+  if (clean === "") return null;
+
+  /* Aceita 1.299,90 e 1299.90 */
+  const normalized = clean.includes(",") ? clean.replace(/\./g, "").replace(",", ".") : clean;
+  const value = Number(normalized);
+  return Number.isFinite(value) && value >= 0 ? Math.round(value * 100) / 100 : NaN;
+}
+
+async function saveProduct(event) {
+  event.preventDefault();
+  $("formError").textContent = "";
+
+  const name = $("fName").value.trim();
+  const category = $("fCategory").value.trim();
+  const price = parsePrice($("fPrice").value);
+
+  if (!name || !category) {
+    $("formError").textContent = "Informe o nome e a categoria.";
+    return;
+  }
+  if (Number.isNaN(price)) {
+    $("formError").textContent = "Preço inválido. Exemplo: 149,90";
+    return;
+  }
+
+  const btn = $("saveBtn");
+  btn.disabled = true;
+  btn.textContent = "Salvando...";
+
+  try {
+    const previous = state.editing ? state.editing.image_url : null;
+    let image_url = previous;
+
+    if (state.newFile) image_url = await uploadImage(state.newFile);
+    else if (state.removeImage) image_url = null;
+
+    const payload = { name, category, price, image_url, active: $("fActive").checked };
+
+    const query = state.editing
+      ? db.from("products").update(payload).eq("id", state.editing.id)
+      : db.from("products").insert(payload);
+
+    const { error } = await query;
+    if (error) throw error;
+
+    /* Só apaga a foto antiga depois que o produto foi salvo com sucesso */
+    if (previous && previous !== image_url) await deleteImage(previous);
+
+    $("modal").close();
+    showToast(state.editing ? "Produto atualizado" : "Produto adicionado");
+    await loadProducts();
+  } catch (err) {
+    console.error(err);
+    $("formError").textContent = "Não foi possível salvar. Tente novamente.";
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Salvar";
+  }
+}
+
+/* ----------------------------------------------------------
+   AÇÕES DA TABELA
+   ---------------------------------------------------------- */
+async function toggleActive(id, active) {
+  const { error } = await db.from("products").update({ active }).eq("id", id);
+  if (error) {
+    showToast("Erro ao alterar visibilidade");
+  } else {
+    showToast(active ? "Produto visível no site" : "Produto oculto do site");
+  }
+  await loadProducts();
+}
+
+async function removeProduct(product) {
+  if (!confirm(`Excluir "${product.name}" de vez? Essa ação não pode ser desfeita.\n\nDica: para só tirar do site, desligue o botão "Visível".`)) return;
+
+  const { error } = await db.from("products").delete().eq("id", product.id);
+  if (error) {
+    showToast("Erro ao excluir");
+    return;
+  }
+
+  if (product.image_url) await deleteImage(product.image_url);
+  showToast("Produto excluído");
+  await loadProducts();
+}
+
+/* ----------------------------------------------------------
+   EVENTOS
+   ---------------------------------------------------------- */
+function bindEvents() {
+  $("newBtn").addEventListener("click", () => openModal(null));
+  $("cancelBtn").addEventListener("click", () => $("modal").close());
+  $("productForm").addEventListener("submit", saveProduct);
+
+  $("search").addEventListener("input", (e) => {
+    state.term = e.target.value.trim().toLowerCase();
+    renderRows();
+  });
+
+  $("filterCategory").addEventListener("change", (e) => {
+    state.category = e.target.value;
+    renderRows();
+  });
+
+  $("rows").addEventListener("click", (e) => {
+    const edit = e.target.closest("[data-edit]");
+    if (edit) return openModal(state.products.find((p) => p.id === edit.dataset.edit));
+
+    const del = e.target.closest("[data-delete]");
+    if (del) removeProduct(state.products.find((p) => p.id === del.dataset.delete));
+  });
+
+  $("rows").addEventListener("change", (e) => {
+    const toggle = e.target.closest("[data-toggle]");
+    if (toggle) toggleActive(toggle.dataset.toggle, toggle.checked);
+  });
+
+  $("fFile").addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+      state.newFile = await resizeImage(file);
+      state.removeImage = false;
+      renderPreview(URL.createObjectURL(state.newFile));
+    } catch (err) {
+      $("formError").textContent = err.message;
+    }
+  });
+
+  $("fRemoveImg").addEventListener("click", () => {
+    state.newFile = null;
+    state.removeImage = true;
+    $("fFile").value = "";
+    renderPreview(null, $("fName").value ? initialOf($("fName").value) : "+");
+  });
+}
+
+/* ----------------------------------------------------------
+   INÍCIO
+   ---------------------------------------------------------- */
+async function init() {
+  if (!db) {
+    showView("login");
+    $("loginError").textContent = "Configure o arquivo config.js com os dados do Supabase.";
+    $("loginBtn").disabled = true;
+    return;
+  }
+
+  bindEvents();
+  setupAuth(); // o onAuthStateChange já dispara a sessão inicial
+}
+
+init();

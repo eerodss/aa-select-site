@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>A&amp;A Select Importados</title>
+    <meta
+      name="description"
+      content="Produtos selecionados que garantem presença onde estiver, com a máxima excelência e qualidade. A&A Select nasceu para elevar o seu nível."
+    />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=PT+Serif:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+
+  <body>
+    <!-- ========== CABEÇALHO ========== -->
+    <header>
+      <div class="wrap bar">
+        <a class="logo" href="#top">A&amp;A <b>SELECT</b></a>
+
+        <nav>
+          <a href="#catalogo">Catálogo</a>
+          <a href="#sobre">Sobre nós</a>
+          <a href="#contato">Contato</a>
+        </nav>
+
+        <button class="cartbtn" id="openCart" aria-label="Abrir carrinho">
+          Carrinho <i id="count">0</i>
+        </button>
+      </div>
+    </header>
+
+    <main id="top">
+      <!-- ========== HERO ========== -->
+      <div class="hero">
+        <div class="wrap">
+          <div class="eyebrow">Produtos importados</div>
+          <h1>Presença onde<br />você estiver</h1>
+          <p>
+            Produtos selecionados com máxima excelência e qualidade. A A&amp;A Select nasceu para
+            elevar o seu nível.
+          </p>
+          <a class="btn" href="#catalogo">Ver catálogo</a>
+          <a class="btn ghost" href="#contato">Falar conosco</a>
+        </div>
+      </div>
+
+      <!-- ========== DIFERENCIAIS ========== -->
+      <div class="perks">
+        <div class="perk" data-n="01">
+          <div class="pi">
+            <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M6 3h12l4 6-10 12L2 9z" />
+              <path d="M11 3 8 9l4 12 4-12-3-6" />
+              <path d="M2 9h20" />
+            </svg>
+          </div>
+          <h3>Curadoria exclusiva</h3>
+          <p>Cada item é escolhido a dedo, para quem não abre mão do melhor.</p>
+        </div>
+
+        <div class="perk" data-n="02">
+          <div class="pi">
+            <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              <path d="m9 12 2 2 4-4" />
+            </svg>
+          </div>
+          <h3>Importados originais</h3>
+          <p>Qualidade e procedência em cada produto que chega até você.</p>
+        </div>
+
+        <div class="perk" data-n="03">
+          <div class="pi">
+            <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M12 6v6l4 2" />
+            </svg>
+          </div>
+          <h3>Atendimento próximo</h3>
+          <p>De segunda a sexta, das 08h às 18h, e aos sábados até as 12h.</p>
+        </div>
+      </div>
+
+      <!-- ========== CATÁLOGO ========== -->
+      <section id="catalogo">
+        <div class="wrap">
+          <div class="head">
+            <div>
+              <div class="eyebrow">Catálogo online</div>
+              <h2>Nossos produtos</h2>
+            </div>
+          </div>
+
+          <div class="tools">
+            <input class="search" id="q" type="search" placeholder="Buscar por nome do produto" aria-label="Buscar produto" />
+            <div class="chips" id="chips"></div>
+          </div>
+
+          <div class="grid" id="grid"></div>
+          <div class="empty" id="empty">Nenhum produto encontrado. Tente outro termo.</div>
+
+          <div class="more">
+            <button class="btn ghost" id="more" style="margin: 0">Ver mais produtos</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== SOBRE NÓS ========== -->
+      <section class="about" id="sobre">
+        <div class="wrap cols">
+          <div>
+            <div class="eyebrow">Sobre nós</div>
+            <h2>Elevar o seu nível é o nosso padrão</h2>
+            <p>
+              Aqui você encontra produtos selecionados que garantem presença onde estiver. Acompanhe
+              nossa jornada e venha desfrutar do melhor para você.
+            </p>
+          </div>
+
+          <div class="box">
+            <h3>Horário de atendimento</h3>
+            <div class="row"><span>Segunda a sexta</span><b>08h às 18h</b></div>
+            <div class="row"><span>Sábado</span><b>08h às 12h</b></div>
+            <div class="row"><span>Domingo</span><b>Fechado</b></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== CONTATO ========== -->
+      <section id="contato">
+        <div class="wrap">
+          <div class="head" style="justify-content: center; text-align: center">
+            <div>
+              <div class="eyebrow">Contato</div>
+              <h2>Envie uma mensagem</h2>
+            </div>
+          </div>
+
+          <form id="contactForm">
+            <input required placeholder="Nome" aria-label="Nome" />
+            <input required type="email" placeholder="E-mail" aria-label="E-mail" />
+            <textarea required rows="4" placeholder="Como podemos ajudar?" aria-label="Mensagem"></textarea>
+            <button class="btn" type="submit">Enviar mensagem</button>
+          </form>
+        </div>
+      </section>
+    </main>
+
+    <!-- ========== RODAPÉ ========== -->
+    <footer>
+      <div class="wrap">
+        <span>© 2026 A&amp;A Select Importados. Todos os direitos reservados.</span>
+        <span>Termos e Condições · Política de Privacidade</span>
+      </div>
+    </footer>
+
+    <!-- ========== CARRINHO LATERAL ========== -->
+    <div class="drawer" id="drawer">
+      <div class="shade" id="shade"></div>
+      <div class="panel">
+        <h3>Seu carrinho</h3>
+        <div class="items" id="items"></div>
+        <div class="total"><span>Total</span><span id="total">R$ 0,00</span></div>
+        <button class="btn" id="checkout">Finalizar pedido</button>
+      </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+    <script src="config.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>
