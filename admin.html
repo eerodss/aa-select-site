@@ -12,6 +12,19 @@
       href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=PT+Serif:wght@400;700&display=swap"
       rel="stylesheet"
     />
+    <!-- Impede que o painel seja aberto dentro de outro site (clickjacking) -->
+    <style>
+      html {
+        visibility: hidden;
+      }
+    </style>
+    <script>
+      if (window.top === window.self) {
+        document.documentElement.style.visibility = "visible";
+      } else {
+        window.top.location = window.self.location;
+      }
+    </script>
     <link rel="stylesheet" href="style.css?v=3" />
     <link rel="stylesheet" href="admin.css?v=3" />
   </head>
@@ -154,7 +167,11 @@
 
     <div class="toast" id="toast"></div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"
+      integrity="sha384-GFr3yTh5lJznCbZfpTtXnwboFsxqtTQoeTZCRHhE0579KrRmlCzen5AA8ohaB5ug"
+      crossorigin="anonymous"
+    ></script>
     <script src="config.js?v=3"></script>
     <script src="admin.js?v=3"></script>
   </body>
