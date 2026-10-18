@@ -48,7 +48,10 @@
             <div class="eyebrow">Painel</div>
             <h1>Produtos</h1>
           </div>
-          <button class="btn" id="newBtn">+ Novo produto</button>
+          <div class="dash-actions">
+            <button class="btn ghost" id="catsBtn">Categorias</button>
+            <button class="btn" id="newBtn">+ Novo produto</button>
+          </div>
         </div>
 
         <div class="stats" id="stats"></div>
@@ -94,8 +97,7 @@
           </label>
           <label>
             Categoria
-            <input id="fCategory" list="categoryList" required maxlength="40" />
-            <datalist id="categoryList"></datalist>
+            <select id="fCategory" required></select>
           </label>
         </div>
 
@@ -123,6 +125,29 @@
           <button type="submit" class="btn" id="saveBtn">Salvar</button>
         </div>
       </form>
+    </dialog>
+
+    <!-- ========== MODAL: CATEGORIAS ========== -->
+    <dialog id="catModal">
+      <h2>Categorias</h2>
+
+      <form id="catForm">
+        <label>
+          Nova categoria
+          <div class="inline-field">
+            <input id="catName" required maxlength="40" placeholder="Ex.: Unissex" />
+            <button type="submit" class="btn small" id="catAddBtn">Adicionar</button>
+          </div>
+        </label>
+      </form>
+
+      <p class="hint">Renomear a categoria atualiza todos os produtos dela. Só dá para excluir categorias sem produtos.</p>
+      <ul class="cat-list" id="catList"></ul>
+      <p class="form-error" id="catError" role="alert"></p>
+
+      <div class="actions">
+        <button type="button" class="btn ghost" id="catCloseBtn">Fechar</button>
+      </div>
     </dialog>
 
     <div class="toast" id="toast"></div>

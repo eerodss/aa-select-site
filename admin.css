@@ -381,6 +381,73 @@ label.check input {
   margin-left: 0;
 }
 
+dialog select {
+  padding: 12px 14px;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  font: 400 15px Montserrat, sans-serif;
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 400;
+}
+
+.dash-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.dash-actions .btn.ghost {
+  margin-left: 0;
+}
+
+.inline-field {
+  display: flex;
+  gap: 10px;
+}
+
+.inline-field input {
+  flex: 1;
+}
+
+.cat-list {
+  list-style: none;
+  padding: 0;
+  margin: 18px 0 0;
+  display: grid;
+  gap: 10px;
+}
+
+.cat-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+
+.cat-list .cat-name {
+  flex: 1;
+  font-weight: 600;
+}
+
+.cat-list .cat-name input {
+  width: 100%;
+  padding: 8px 12px;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  font: 400 15px Montserrat, sans-serif;
+}
+
+.cat-list .muted {
+  font-size: 13px;
+}
+
 @media (max-width: 780px) {
   .stats {
     grid-template-columns: 1fr 1fr;

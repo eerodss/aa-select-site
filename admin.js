@@ -23,6 +23,7 @@ const initialOf = (name) =>
    ---------------------------------------------------------- */
 const state = {
   products: [],
+  categories: [], // [{ id, name }] na ordem de cadastro
   term: "",
   category: "Todas",
   editing: null, // produto sendo editado (null = novo)
@@ -99,17 +100,25 @@ function setupAuth() {
    DADOS
    ---------------------------------------------------------- */
 async function loadProducts() {
-  const { data, error } = await db.from("products").select("*").order("seq", { ascending: true });
+  const [products, categories] = await Promise.all([
+    db.from("products").select("*").order("seq", { ascending: true }),
+    db.from("categories").select("id, name").order("seq", { ascending: true }),
+  ]);
 
-  if (error) {
-    console.error(error);
-    showToast("Erro ao carregar produtos");
+  if (products.error || categories.error) {
+    console.error(products.error || categories.error);
+    showToast("Erro ao carregar dados");
     return;
   }
 
-  state.products = data;
+  state.products = products.data;
+  state.categories = categories.data;
   render();
 }
+
+const categoryNames = () => state.categories.map((c) => c.name);
+
+const productCount = (name) => state.products.filter((p) => p.category === name).length;
 
 /* ----------------------------------------------------------
    LISTAGEM
@@ -126,29 +135,23 @@ function renderStats() {
   const total = state.products.length;
   const active = state.products.filter((p) => p.active).length;
   const noPrice = state.products.filter((p) => p.price === null).length;
-  const cats = new Set(state.products.map((p) => p.category)).size;
-
   const items = [
     [total, "Produtos"],
     [active, "Visíveis no site"],
     [noPrice, "Sem preço"],
-    [cats, "Categorias"],
+    [state.categories.length, "Categorias"],
   ];
 
   $("stats").innerHTML = items.map(([n, label]) => `<div class="stat"><b>${n}</b><span>${label}</span></div>`).join("");
 }
 
 function renderFilter() {
-  const cats = ["Todas", ...new Set(state.products.map((p) => p.category))];
+  const cats = ["Todas", ...categoryNames()];
   if (!cats.includes(state.category)) state.category = "Todas";
 
   $("filterCategory").innerHTML = cats
     .map((c) => `<option value="${esc(c)}"${c === state.category ? " selected" : ""}>${esc(c)}</option>`)
     .join("");
-
-  /* Sugestões do formulário: categorias existentes + sugeridas */
-  const suggestions = new Set([...(cfg.CATEGORY_SUGGESTIONS || []), ...state.products.map((p) => p.category)]);
-  $("categoryList").innerHTML = [...suggestions].map((c) => `<option value="${esc(c)}"></option>`).join("");
 }
 
 function thumbHTML(product) {
@@ -249,6 +252,15 @@ function renderPreview(src, fallback) {
   $("fRemoveImg").hidden = !src;
 }
 
+/* Seletor de categoria: só aceita categorias cadastradas */
+function fillCategorySelect(selected) {
+  const names = categoryNames();
+  const options = ['<option value="">Escolha uma categoria</option>', ...names.map((n) => `<option value="${esc(n)}">${esc(n)}</option>`)];
+  $("fCategory").innerHTML = options.join("");
+  $("fCategory").value = selected || "";
+  $("fCategory").disabled = names.length === 0;
+}
+
 function openModal(product) {
   state.editing = product || null;
   state.newFile = null;
@@ -257,7 +269,7 @@ function openModal(product) {
   $("modalTitle").textContent = product ? "Editar produto" : "Novo produto";
   $("fName").value = product ? product.name : "";
   $("fPrice").value = product && product.price !== null ? String(product.price).replace(".", ",") : "";
-  $("fCategory").value = product ? product.category : "";
+  fillCategorySelect(product ? product.category : "");
   $("fActive").checked = product ? product.active : true;
   $("fFile").value = "";
   $("formError").textContent = "";
@@ -281,11 +293,11 @@ async function saveProduct(event) {
   $("formError").textContent = "";
 
   const name = $("fName").value.trim();
-  const category = $("fCategory").value.trim();
+  const category = $("fCategory").value;
   const price = parsePrice($("fPrice").value);
 
   if (!name || !category) {
-    $("formError").textContent = "Informe o nome e a categoria.";
+    $("formError").textContent = category ? "Informe o nome do produto." : "Escolha uma categoria. Se não houver nenhuma, crie em Categorias.";
     return;
   }
   if (Number.isNaN(price)) {
@@ -329,6 +341,125 @@ async function saveProduct(event) {
 }
 
 /* ----------------------------------------------------------
+   CATEGORIAS: criar, renomear e excluir
+   ---------------------------------------------------------- */
+const cleanName = (text) => text.trim().replace(/\s+/g, " ");
+
+function categoryErrorMessage(error) {
+  if (error.code === "23505") return "Já existe uma categoria com esse nome.";
+  if (error.code === "23503") return "Essa categoria tem produtos. Mova os produtos antes de excluir.";
+  return "Não foi possível salvar. Tente novamente.";
+}
+
+function renderCatList() {
+  $("catList").innerHTML =
+    state.categories
+      .map((c) => {
+        const n = productCount(c.name);
+        return `
+      <li data-cat="${c.id}">
+        <span class="cat-name">${esc(c.name)}</span>
+        <span class="muted">${n} ${n === 1 ? "produto" : "produtos"}</span>
+        <button class="icon-btn" data-cat-rename="${c.id}">Renomear</button>
+        <button class="icon-btn danger" data-cat-delete="${c.id}">Excluir</button>
+      </li>`;
+      })
+      .join("") || '<li class="muted">Nenhuma categoria cadastrada.</li>';
+}
+
+function openCatModal() {
+  $("catError").textContent = "";
+  $("catName").value = "";
+  renderCatList();
+  $("catModal").showModal();
+}
+
+async function addCategory(event) {
+  event.preventDefault();
+  const name = cleanName($("catName").value);
+  if (!name) return;
+
+  $("catAddBtn").disabled = true;
+  const { error } = await db.from("categories").insert({ name });
+  $("catAddBtn").disabled = false;
+
+  if (error) {
+    $("catError").textContent = categoryErrorMessage(error);
+    return;
+  }
+
+  $("catName").value = "";
+  $("catError").textContent = "";
+  showToast("Categoria criada");
+  await loadProducts();
+  renderCatList();
+}
+
+function startRename(id) {
+  const cat = state.categories.find((c) => c.id === id);
+  if (!cat) return;
+
+  $("catList").querySelector(`[data-cat="${id}"]`).innerHTML = `
+    <span class="cat-name"><input id="renameInput" maxlength="40" value="${esc(cat.name)}" aria-label="Novo nome" /></span>
+    <button class="icon-btn" data-cat-save="${id}">Salvar</button>
+    <button class="icon-btn" data-cat-cancel>Cancelar</button>`;
+
+  $("renameInput").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      saveRename(id);
+    }
+  });
+  $("renameInput").focus();
+}
+
+async function saveRename(id) {
+  const cat = state.categories.find((c) => c.id === id);
+  const name = cleanName($("renameInput").value);
+
+  if (!name) {
+    $("catError").textContent = "Digite um nome para a categoria.";
+    return;
+  }
+  if (name === cat.name) return renderCatList();
+
+  /* A chave estrangeira em products atualiza os produtos automaticamente */
+  const { error } = await db.from("categories").update({ name }).eq("id", id);
+  if (error) {
+    $("catError").textContent = categoryErrorMessage(error);
+    return;
+  }
+
+  $("catError").textContent = "";
+  showToast("Categoria renomeada");
+  await loadProducts();
+  renderCatList();
+}
+
+async function removeCategory(id) {
+  const cat = state.categories.find((c) => c.id === id);
+  if (!cat) return;
+
+  const n = productCount(cat.name);
+  if (n > 0) {
+    $("catError").textContent = `"${cat.name}" tem ${n} ${n === 1 ? "produto" : "produtos"}. Mova ou exclua esses produtos antes.`;
+    return;
+  }
+  if (!confirm(`Excluir a categoria "${cat.name}"?`)) return;
+
+  const { error } = await db.from("categories").delete().eq("id", id);
+  if (error) {
+    $("catError").textContent = categoryErrorMessage(error);
+    return;
+  }
+
+  $("catError").textContent = "";
+  showToast("Categoria excluída");
+  await loadProducts();
+  renderCatList();
+}
+
+/* ----------------------------------------------------------
    AÇÕES DA TABELA
    ---------------------------------------------------------- */
 async function toggleActive(id, active) {
@@ -362,6 +493,22 @@ function bindEvents() {
   $("newBtn").addEventListener("click", () => openModal(null));
   $("cancelBtn").addEventListener("click", () => $("modal").close());
   $("productForm").addEventListener("submit", saveProduct);
+
+  $("catsBtn").addEventListener("click", openCatModal);
+  $("catCloseBtn").addEventListener("click", () => $("catModal").close());
+  $("catForm").addEventListener("submit", addCategory);
+  $("catList").addEventListener("click", (e) => {
+    const rename = e.target.closest("[data-cat-rename]");
+    if (rename) return startRename(rename.dataset.catRename);
+
+    const save = e.target.closest("[data-cat-save]");
+    if (save) return saveRename(save.dataset.catSave);
+
+    if (e.target.closest("[data-cat-cancel]")) return renderCatList();
+
+    const del = e.target.closest("[data-cat-delete]");
+    if (del) removeCategory(del.dataset.catDelete);
+  });
 
   $("search").addEventListener("input", (e) => {
     state.term = e.target.value.trim().toLowerCase();
