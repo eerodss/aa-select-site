@@ -25,6 +25,7 @@ const state = {
   products: [],
   categories: [], // [{ id, name }] na ordem de cadastro
   messages: [], // mensagens enviadas pelo formulário de contato
+  orders: [], // pedidos feitos pelo carrinho
   loaded: false, // true depois da primeira leitura do banco
   term: "",
   category: "Todas",
@@ -121,6 +122,77 @@ async function loadProducts() {
   state.loaded = true;
   render();
   await loadMessages();
+  await loadOrders();
+}
+
+/* ----------------------------------------------------------
+   PEDIDOS DO CARRINHO
+   ---------------------------------------------------------- */
+async function loadOrders() {
+  const { data, error } = await db.from("orders").select("*").order("created_at", { ascending: false });
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  state.orders = data;
+  const newOnes = state.orders.filter((o) => o.status === "novo").length;
+  $("newOrdersBadge").hidden = newOnes === 0;
+  $("newOrdersBadge").textContent = newOnes;
+}
+
+function renderOrders() {
+  $("ordersList").innerHTML = state.orders
+    .map((o) => {
+      const lines = o.items.map((item) => `<li>${item.qty}x ${esc(item.name)} · ${formatBRL(Number(item.price))}</li>`).join("");
+      const when = new Date(o.created_at).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
+
+      return `
+      <li class="msg${o.status === "novo" ? " unread" : ""}">
+        <div class="msg-head">
+          <b>Pedido · ${formatBRL(Number(o.total))}</b>
+          <span class="muted">${when} · ${esc(o.status)}</span>
+        </div>
+        <ul class="order-items">${lines}</ul>
+        <div class="row-actions">
+          ${o.status === "novo" ? `<button class="icon-btn" data-order-done="${o.id}">Marcar como atendido</button>` : ""}
+          <button class="icon-btn danger" data-order-delete="${o.id}">Excluir</button>
+        </div>
+      </li>`;
+    })
+    .join("");
+
+  $("ordersEmpty").style.display = state.orders.length ? "none" : "block";
+  $("ordersEmpty").textContent = state.orders.length ? "" : "Nenhum pedido recebido ainda.";
+}
+
+function openOrdersModal() {
+  renderOrders();
+  $("ordersModal").showModal();
+}
+
+async function markOrderDone(id) {
+  const { error } = await db.from("orders").update({ status: "atendido" }).eq("id", id);
+  if (error) {
+    showToast("Erro ao atualizar o pedido");
+    return;
+  }
+  await loadOrders();
+  renderOrders();
+}
+
+async function removeOrder(id) {
+  if (!confirm("Excluir este pedido? Essa ação não pode ser desfeita.")) return;
+
+  const { error } = await db.from("orders").delete().eq("id", id);
+  if (error) {
+    showToast("Erro ao excluir o pedido");
+    return;
+  }
+  showToast("Pedido excluído");
+  await loadOrders();
+  renderOrders();
 }
 
 /* ----------------------------------------------------------
@@ -597,6 +669,16 @@ function bindEvents() {
   $("newBtn").addEventListener("click", () => openModal(null));
   $("cancelBtn").addEventListener("click", () => $("modal").close());
   $("productForm").addEventListener("submit", saveProduct);
+
+  $("ordersBtn").addEventListener("click", openOrdersModal);
+  $("ordersCloseBtn").addEventListener("click", () => $("ordersModal").close());
+  $("ordersList").addEventListener("click", (e) => {
+    const done = e.target.closest("[data-order-done]");
+    if (done) return markOrderDone(done.dataset.orderDone);
+
+    const del = e.target.closest("[data-order-delete]");
+    if (del) removeOrder(del.dataset.orderDelete);
+  });
 
   $("msgsBtn").addEventListener("click", openMsgModal);
   $("msgCloseBtn").addEventListener("click", () => $("msgModal").close());

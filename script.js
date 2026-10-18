@@ -265,6 +265,41 @@ function setupPerksAnimation() {
 }
 
 /* ----------------------------------------------------------
+   PEDIDO
+   ---------------------------------------------------------- */
+function checkout() {
+  const items = [];
+  let total = 0;
+
+  Object.entries(state.cart).forEach(([id, qty]) => {
+    const product = findProduct(id);
+    if (!product) return;
+    const price = Number(product.price);
+    total += qty * price;
+    items.push({ name: product.name, qty, price });
+  });
+
+  if (!items.length) return showToast("Adicione um produto primeiro");
+
+  const lines = items.map((item) => `- ${item.qty}x ${item.name} (${formatBRL(item.price)})`);
+  const message = `Olá! Quero fazer este pedido:\n${lines.join("\n")}\n\nTotal: ${formatBRL(total)}`;
+
+  /* Abre o WhatsApp direto no clique, senão o navegador pode bloquear a janela */
+  const number = cfg.WHATSAPP_NUMBER || "";
+  window.open(`https://wa.me/${number}?text=${encodeURIComponent(message)}`, "_blank", "noopener");
+
+  saveOrder(items, total);
+}
+
+/* Grava o pedido para o painel. Se falhar, o cliente já está no WhatsApp com o pedido */
+async function saveOrder(items, total) {
+  if (!db) return;
+
+  const { error } = await db.from("orders").insert({ items, total: Number(total.toFixed(2)) });
+  if (error) console.error(error);
+}
+
+/* ----------------------------------------------------------
    CONTATO
    ---------------------------------------------------------- */
 async function sendContact(event) {
@@ -373,25 +408,8 @@ function bindEvents() {
     if (event.key === "Escape" && $("drawer").classList.contains("open")) closeCart();
   });
 
-  /* Finalizar pedido: abre o WhatsApp com a lista do carrinho */
-  $("checkout").addEventListener("click", () => {
-    const lines = [];
-    let total = 0;
-
-    Object.entries(state.cart).forEach(([id, qty]) => {
-      const product = findProduct(id);
-      if (!product) return;
-      const price = Number(product.price);
-      total += qty * price;
-      lines.push(`- ${qty}x ${product.name} (${formatBRL(price)})`);
-    });
-
-    if (!lines.length) return showToast("Adicione um produto primeiro");
-
-    const message = `Olá! Quero fazer este pedido:\n${lines.join("\n")}\n\nTotal: ${formatBRL(total)}`;
-    const number = cfg.WHATSAPP_NUMBER || "";
-    window.open(`https://wa.me/${number}?text=${encodeURIComponent(message)}`, "_blank", "noopener");
-  });
+  /* Finalizar pedido: abre o WhatsApp com a lista pronta e grava o pedido no painel */
+  $("checkout").addEventListener("click", checkout);
 
   /* Formulário de contato: grava a mensagem para o painel ler */
   $("contactForm").addEventListener("submit", sendContact);
