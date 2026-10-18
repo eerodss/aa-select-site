@@ -289,11 +289,15 @@ async function sendContact(event) {
   btn.textContent = "Enviando...";
   status.textContent = "";
 
-  const { error } = await db.from("messages").insert({
-    name: String(data.get("name")).trim().replace(/\s+/g, " "),
-    email: String(data.get("email")).trim(),
-    message: String(data.get("message")).trim(),
-  });
+  /* returning: "minimal" evita pedir de volta a linha gravada, o que exigiria permissão de leitura para visitantes */
+  const { error } = await db.from("messages").insert(
+    {
+      name: String(data.get("name")).trim().replace(/\s+/g, " "),
+      email: String(data.get("email")).trim(),
+      message: String(data.get("message")).trim(),
+    },
+    { returning: "minimal" }
+  );
 
   btn.disabled = false;
   btn.textContent = "Enviar mensagem";
