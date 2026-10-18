@@ -285,13 +285,24 @@ async function sendContact(event) {
     return;
   }
 
+  /* Contato: e-mail (tem @) ou telefone com DDD (8 a 15 dígitos) */
+  const contact = String(data.get("contact")).trim();
+  const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact);
+  const digits = contact.replace(/\D/g, "");
+  const isPhone = !contact.includes("@") && /^[\d\s()+-]+$/.test(contact) && digits.length >= 8 && digits.length <= 15;
+
+  if (!isEmail && !isPhone) {
+    status.textContent = "Informe um e-mail válido ou um telefone com DDD.";
+    return;
+  }
+
   btn.disabled = true;
   btn.textContent = "Enviando...";
   status.textContent = "";
 
   const { error } = await db.from("messages").insert({
     name: String(data.get("name")).trim().replace(/\s+/g, " "),
-    email: String(data.get("email")).trim(),
+    contact,
     message: String(data.get("message")).trim(),
   });
 

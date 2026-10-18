@@ -144,6 +144,18 @@ function updateUnreadBadge() {
   $("unreadBadge").textContent = unread;
 }
 
+/* E-mail abre o programa de e-mail; telefone abre a conversa no WhatsApp */
+function contactLink(contact) {
+  if (contact.includes("@")) {
+    const subject = encodeURIComponent("Re: seu contato na A&A Select");
+    return `<a href="mailto:${esc(contact)}?subject=${subject}">${esc(contact)}</a>`;
+  }
+
+  let digits = contact.replace(/\D/g, "");
+  if (digits.length <= 11) digits = `55${digits}`; // sem código do país, assume Brasil
+  return `<a href="https://wa.me/${digits}" target="_blank" rel="noopener">${esc(contact)} (WhatsApp)</a>`;
+}
+
 function renderMessages() {
   const list = $("msgList");
 
@@ -155,7 +167,7 @@ function renderMessages() {
           <b>${esc(m.name)}</b>
           <span class="muted">${new Date(m.created_at).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}</span>
         </div>
-        <a href="mailto:${esc(m.email)}?subject=${encodeURIComponent("Re: seu contato na A&A Select")}">${esc(m.email)}</a>
+        ${contactLink(m.contact)}
         <p>${esc(m.message)}</p>
         <div class="row-actions">
           ${m.is_read ? "" : `<button class="icon-btn" data-msg-read="${m.id}">Marcar como lida</button>`}
