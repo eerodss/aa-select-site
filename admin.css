@@ -448,6 +448,76 @@ dialog select {
   font-size: 13px;
 }
 
+.badge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  margin-left: 6px;
+  padding: 0 6px;
+  border-radius: 99px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font: 700 11px Montserrat, sans-serif;
+  font-style: normal;
+}
+
+.badge[hidden] {
+  display: none;
+}
+
+.msg-list {
+  list-style: none;
+  padding: 0;
+  margin: 18px 0 0;
+  display: grid;
+  gap: 12px;
+}
+
+.msg-list:empty {
+  display: none;
+}
+
+.msg {
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  display: grid;
+  gap: 6px;
+}
+
+.msg.unread {
+  border-color: var(--accent);
+}
+
+.msg-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.msg-head span {
+  font-size: 12px;
+}
+
+.msg p {
+  margin: 4px 0;
+  white-space: pre-wrap;
+  font-size: 14px;
+}
+
+.msg a {
+  font-size: 13px;
+  color: var(--muted);
+  text-decoration: underline;
+  word-break: break-all;
+}
+
+.msg .row-actions {
+  justify-content: flex-start;
+}
+
 /* Ajustes gerais do painel */
 :focus-visible {
   outline: 2px solid var(--accent);

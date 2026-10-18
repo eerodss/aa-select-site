@@ -62,6 +62,7 @@
             <h1>Produtos</h1>
           </div>
           <div class="dash-actions">
+            <button class="btn ghost" id="msgsBtn">Mensagens <i class="badge" id="unreadBadge" hidden></i></button>
             <button class="btn ghost" id="catsBtn">Categorias</button>
             <button class="btn" id="newBtn">+ Novo produto</button>
           </div>
@@ -140,6 +141,17 @@
           <button type="submit" class="btn" id="saveBtn">Salvar</button>
         </div>
       </form>
+    </dialog>
+
+    <!-- ========== MODAL: MENSAGENS DO FORMULÁRIO ========== -->
+    <dialog id="msgModal">
+      <h2>Mensagens</h2>
+      <p class="hint">Mensagens enviadas pelo formulário de contato do site, da mais nova para a mais antiga.</p>
+      <ul class="msg-list" id="msgList"></ul>
+      <p class="table-empty" id="msgEmpty"></p>
+      <div class="actions">
+        <button type="button" class="btn ghost" id="msgCloseBtn">Fechar</button>
+      </div>
     </dialog>
 
     <!-- ========== MODAL: CATEGORIAS ========== -->

@@ -146,10 +146,13 @@
           </div>
 
           <form id="contactForm">
-            <input required placeholder="Nome" aria-label="Nome" />
-            <input required type="email" placeholder="E-mail" aria-label="E-mail" />
-            <textarea required rows="4" placeholder="Como podemos ajudar?" aria-label="Mensagem"></textarea>
-            <button class="btn" type="submit">Enviar mensagem</button>
+            <input required name="name" maxlength="120" placeholder="Nome" aria-label="Nome" />
+            <input required name="email" type="email" maxlength="160" placeholder="E-mail" aria-label="E-mail" />
+            <textarea required name="message" rows="4" maxlength="2000" placeholder="Como podemos ajudar?" aria-label="Mensagem"></textarea>
+            <!-- Campo escondido: pessoas não preenchem, robôs costumam preencher -->
+            <input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" />
+            <button class="btn" type="submit" id="contactBtn">Enviar mensagem</button>
+            <p class="form-status" id="contactStatus" role="status" aria-live="polite"></p>
           </form>
         </div>
       </section>

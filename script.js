@@ -265,6 +265,52 @@ function setupPerksAnimation() {
 }
 
 /* ----------------------------------------------------------
+   CONTATO
+   ---------------------------------------------------------- */
+async function sendContact(event) {
+  event.preventDefault();
+  const form = event.target;
+  const status = $("contactStatus");
+  const btn = $("contactBtn");
+  const data = new FormData(form);
+
+  /* Campo escondido preenchido = robô: finge que enviou, mas não grava */
+  if (data.get("website")) {
+    form.reset();
+    return;
+  }
+
+  if (!db) {
+    status.textContent = "Envio indisponível no momento. Fale com a gente pelo WhatsApp.";
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = "Enviando...";
+  status.textContent = "";
+
+  const { error } = await db.from("messages").insert({
+    name: String(data.get("name")).trim().replace(/\s+/g, " "),
+    email: String(data.get("email")).trim(),
+    message: String(data.get("message")).trim(),
+  });
+
+  btn.disabled = false;
+  btn.textContent = "Enviar mensagem";
+
+  if (error) {
+    console.error(error);
+    status.textContent =
+      error.code === "23514" ? "Confira os dados preenchidos e tente de novo." : "Não foi possível enviar. Tente novamente em instantes.";
+    return;
+  }
+
+  form.reset();
+  status.textContent = "Mensagem enviada! Responderemos em breve.";
+  showToast("Mensagem enviada com sucesso");
+}
+
+/* ----------------------------------------------------------
    EVENTOS
    ---------------------------------------------------------- */
 function bindEvents() {
@@ -336,12 +382,8 @@ function bindEvents() {
     window.open(`https://wa.me/${number}?text=${encodeURIComponent(message)}`, "_blank", "noopener");
   });
 
-  /* Formulário de contato */
-  $("contactForm").addEventListener("submit", (event) => {
-    event.preventDefault();
-    showToast("Mensagem enviada com sucesso");
-    event.target.reset();
-  });
+  /* Formulário de contato: grava a mensagem para o painel ler */
+  $("contactForm").addEventListener("submit", sendContact);
 }
 
 /* ----------------------------------------------------------

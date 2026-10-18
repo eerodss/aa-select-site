@@ -24,6 +24,7 @@ const initialOf = (name) =>
 const state = {
   products: [],
   categories: [], // [{ id, name }] na ordem de cadastro
+  messages: [], // mensagens enviadas pelo formulário de contato
   loaded: false, // true depois da primeira leitura do banco
   term: "",
   category: "Todas",
@@ -119,6 +120,81 @@ async function loadProducts() {
   state.categories = categories.data;
   state.loaded = true;
   render();
+  await loadMessages();
+}
+
+/* ----------------------------------------------------------
+   MENSAGENS DO FORMULÁRIO DE CONTATO
+   ---------------------------------------------------------- */
+async function loadMessages() {
+  const { data, error } = await db.from("messages").select("*").order("created_at", { ascending: false });
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  state.messages = data;
+  updateUnreadBadge();
+}
+
+function updateUnreadBadge() {
+  const unread = state.messages.filter((m) => !m.is_read).length;
+  $("unreadBadge").hidden = unread === 0;
+  $("unreadBadge").textContent = unread;
+}
+
+function renderMessages() {
+  const list = $("msgList");
+
+  list.innerHTML = state.messages
+    .map(
+      (m) => `
+      <li class="msg${m.is_read ? "" : " unread"}">
+        <div class="msg-head">
+          <b>${esc(m.name)}</b>
+          <span class="muted">${new Date(m.created_at).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}</span>
+        </div>
+        <a href="mailto:${esc(m.email)}?subject=${encodeURIComponent("Re: seu contato na A&A Select")}">${esc(m.email)}</a>
+        <p>${esc(m.message)}</p>
+        <div class="row-actions">
+          ${m.is_read ? "" : `<button class="icon-btn" data-msg-read="${m.id}">Marcar como lida</button>`}
+          <button class="icon-btn danger" data-msg-delete="${m.id}">Excluir</button>
+        </div>
+      </li>`
+    )
+    .join("");
+
+  $("msgEmpty").style.display = state.messages.length ? "none" : "block";
+  $("msgEmpty").textContent = state.messages.length ? "" : "Nenhuma mensagem recebida ainda.";
+}
+
+function openMsgModal() {
+  renderMessages();
+  $("msgModal").showModal();
+}
+
+async function markMessageRead(id) {
+  const { error } = await db.from("messages").update({ is_read: true }).eq("id", id);
+  if (error) {
+    showToast("Erro ao atualizar a mensagem");
+    return;
+  }
+  await loadMessages();
+  renderMessages();
+}
+
+async function removeMessage(id) {
+  if (!confirm("Excluir esta mensagem? Essa ação não pode ser desfeita.")) return;
+
+  const { error } = await db.from("messages").delete().eq("id", id);
+  if (error) {
+    showToast("Erro ao excluir a mensagem");
+    return;
+  }
+  showToast("Mensagem excluída");
+  await loadMessages();
+  renderMessages();
 }
 
 const categoryNames = () => state.categories.map((c) => c.name);
@@ -509,6 +585,16 @@ function bindEvents() {
   $("newBtn").addEventListener("click", () => openModal(null));
   $("cancelBtn").addEventListener("click", () => $("modal").close());
   $("productForm").addEventListener("submit", saveProduct);
+
+  $("msgsBtn").addEventListener("click", openMsgModal);
+  $("msgCloseBtn").addEventListener("click", () => $("msgModal").close());
+  $("msgList").addEventListener("click", (e) => {
+    const read = e.target.closest("[data-msg-read]");
+    if (read) return markMessageRead(read.dataset.msgRead);
+
+    const del = e.target.closest("[data-msg-delete]");
+    if (del) removeMessage(del.dataset.msgDelete);
+  });
 
   $("catsBtn").addEventListener("click", openCatModal);
   $("catCloseBtn").addEventListener("click", () => $("catModal").close());
