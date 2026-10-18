@@ -105,8 +105,8 @@ function productCard(product) {
   const hasPrice = product.price !== null;
   const price = hasPrice ? `<div class="price">${formatBRL(Number(product.price))}</div>` : `<div class="price quote">Sob consulta</div>`;
   const action = hasPrice
-    ? `<button class="add" data-add="${esc(product.id)}">Adicionar ao carrinho</button>`
-    : `<button class="add outline" data-ask>Solicitar orçamento</button>`;
+    ? `<button class="add" data-add="${esc(product.id)}" aria-label="Adicionar ${esc(product.name)} ao carrinho">Adicionar ao carrinho</button>`
+    : `<button class="add outline" data-ask aria-label="Solicitar orçamento de ${esc(product.name)}">Solicitar orçamento</button>`;
   const visual = product.image_url
     ? `<img src="${esc(product.image_url)}" alt="${esc(product.name)}" loading="lazy" />`
     : esc(initialOf(product.name));

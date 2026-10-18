@@ -466,6 +466,28 @@ section {
   }
 }
 
+/* Quem pede menos movimento no aparelho não vê os efeitos de transição */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .skeleton .ph,
+  .skeleton .line {
+    animation: none;
+  }
+  .btn,
+  .card,
+  .chip,
+  .add,
+  .toast {
+    transition: none;
+  }
+  .btn:hover,
+  .card:hover {
+    transform: none;
+  }
+}
+
 .card {
   background: var(--surface);
   border: 1px solid var(--line);
