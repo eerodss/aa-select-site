@@ -67,12 +67,27 @@ async function loadProducts() {
    ---------------------------------------------------------- */
 let toastTimer;
 
-function showToast(message) {
+/* action opcional: { label, onClick } mostra um botão dentro do aviso */
+function showToast(message, action) {
   const el = $("toast");
-  el.textContent = message;
+  el.innerHTML = `<span>${esc(message)}</span>`;
+  el.classList.toggle("with-action", Boolean(action));
+
+  if (action) {
+    const btn = document.createElement("button");
+    btn.className = "toast-action";
+    btn.type = "button";
+    btn.textContent = action.label;
+    btn.addEventListener("click", () => {
+      el.classList.remove("on");
+      action.onClick();
+    });
+    el.appendChild(btn);
+  }
+
   el.classList.add("on");
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.remove("on"), 1800);
+  toastTimer = setTimeout(() => el.classList.remove("on"), action ? 4000 : 1800);
 }
 
 /* ----------------------------------------------------------
@@ -215,7 +230,7 @@ function closeCart() {
 function addToCart(id) {
   state.cart[id] = (state.cart[id] || 0) + 1;
   renderCart();
-  showToast("Adicionado ao carrinho");
+  showToast("Adicionado ao carrinho", { label: "Ver carrinho", onClick: openCart });
 }
 
 function changeQuantity(id, delta) {

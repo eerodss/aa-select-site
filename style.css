@@ -823,6 +823,26 @@ footer .wrap {
   transform: translate(-50%, 0);
 }
 
+/* Aviso com ação (ex.: "Ver carrinho") */
+.toast.with-action {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  pointer-events: auto;
+  white-space: nowrap;
+}
+
+.toast-action {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  font: 700 13px Montserrat;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
 /* Responsivo */
 @media (max-width: 780px) {
   nav {
@@ -874,9 +894,3 @@ footer .wrap {
   }
 }
 
-@media (max-width: 480px) {
-  .hero .btn.ghost {
-    display: block;
-    margin: 10px 0 0;
-  }
-}
