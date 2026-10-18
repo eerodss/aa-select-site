@@ -7,5 +7,8 @@
    ========================================================== */
 window.APP_CONFIG = {
   SUPABASE_URL: "https://kxmvsfjabzthqiopdvmj.supabase.co",
+  /* WhatsApp que recebe os pedidos do carrinho: código do país + DDD + número, só dígitos */
+  WHATSAPP_NUMBER: "5544999725403",
+
   SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt4bXZzZmphYnp0aHFpb3Bkdm1qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE4MTM4ODcsImV4cCI6MjEwNzM4OTg4N30.F5d6XZE51qOer7CDMNCT2Yy5a3bxrAarythFnUAZRD8",
 };

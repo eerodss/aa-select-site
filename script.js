@@ -316,10 +316,24 @@ function bindEvents() {
     if (event.key === "Escape" && $("drawer").classList.contains("open")) closeCart();
   });
 
-  /* Finalizar pedido */
+  /* Finalizar pedido: abre o WhatsApp com a lista do carrinho */
   $("checkout").addEventListener("click", () => {
-    const hasItems = Object.keys(state.cart).length > 0;
-    showToast(hasItems ? "Pedido enviado para atendimento" : "Adicione um produto primeiro");
+    const lines = [];
+    let total = 0;
+
+    Object.entries(state.cart).forEach(([id, qty]) => {
+      const product = findProduct(id);
+      if (!product) return;
+      const price = Number(product.price);
+      total += qty * price;
+      lines.push(`- ${qty}x ${product.name} (${formatBRL(price)})`);
+    });
+
+    if (!lines.length) return showToast("Adicione um produto primeiro");
+
+    const message = `Olá! Quero fazer este pedido:\n${lines.join("\n")}\n\nTotal: ${formatBRL(total)}`;
+    const number = cfg.WHATSAPP_NUMBER || "";
+    window.open(`https://wa.me/${number}?text=${encodeURIComponent(message)}`, "_blank", "noopener");
   });
 
   /* Formulário de contato */
