@@ -88,10 +88,10 @@ function getFilteredProducts() {
 
 function productCard(product) {
   const hasPrice = product.price !== null;
-  const price = hasPrice ? formatBRL(Number(product.price)) : "Sob consulta";
+  const price = hasPrice ? `<div class="price">${formatBRL(Number(product.price))}</div>` : `<div class="price quote">Sob consulta</div>`;
   const action = hasPrice
     ? `<button class="add" data-add="${esc(product.id)}">Adicionar ao carrinho</button>`
-    : `<button class="add" data-ask>Solicitar orçamento</button>`;
+    : `<button class="add outline" data-ask>Solicitar orçamento</button>`;
   const visual = product.image_url
     ? `<img src="${esc(product.image_url)}" alt="${esc(product.name)}" loading="lazy" />`
     : esc(initialOf(product.name));
@@ -104,7 +104,7 @@ function productCard(product) {
       </div>
       <div class="info">
         <h3>${esc(product.name)}</h3>
-        <div class="price">${price}</div>
+        ${price}
         ${action}
       </div>
     </article>`;
@@ -114,14 +114,34 @@ const STATUS_MESSAGES = {
   loading: "Carregando produtos...",
   error: "Não foi possível carregar os produtos agora. Tente novamente em instantes.",
   setup: "Conexão com o banco ainda não configurada. Preencha o arquivo config.js.",
-  empty: "Nenhum produto encontrado. Tente outro termo.",
+  empty: "Nenhum produto encontrado. Tente outro termo ou escolha outra categoria.",
 };
+
+/* Cards vazios que aparecem enquanto os produtos carregam */
+const skeletonCard = `
+  <article class="card skeleton" aria-hidden="true">
+    <div class="ph"></div>
+    <div class="info">
+      <div class="line"></div>
+      <div class="line short"></div>
+    </div>
+  </article>`;
 
 function renderGrid() {
   const emptyEl = $("empty");
+  const countEl = $("resultCount");
+
+  if (state.status === "loading") {
+    $("grid").innerHTML = skeletonCard.repeat(6);
+    countEl.textContent = "";
+    emptyEl.style.display = "none";
+    $("more").style.display = "none";
+    return;
+  }
 
   if (state.status !== "ready") {
     $("grid").innerHTML = "";
+    countEl.textContent = "";
     emptyEl.textContent = STATUS_MESSAGES[state.status];
     emptyEl.style.display = "block";
     $("more").style.display = "none";
@@ -130,6 +150,7 @@ function renderGrid() {
 
   const list = getFilteredProducts();
   $("grid").innerHTML = list.slice(0, state.limit).map(productCard).join("");
+  countEl.textContent = list.length === 1 ? "1 produto encontrado" : `${list.length} produtos encontrados`;
   emptyEl.textContent = STATUS_MESSAGES.empty;
   emptyEl.style.display = list.length ? "none" : "block";
   $("more").style.display = list.length > state.limit ? "inline-block" : "none";
@@ -164,18 +185,31 @@ function renderCart() {
 
     html += `
       <div class="it">
-        <span>${esc(product.name)}<br><small style="color: var(--muted)">${formatBRL(price)}</small></span>
+        <span>
+          <span class="it-name">${esc(product.name)}</span><br>
+          <small>${formatBRL(price)} cada</small>
+        </span>
         <span class="qty">
-          <button data-id="${esc(id)}" data-delta="-1" aria-label="Diminuir">-</button>
-          ${qty}
-          <button data-id="${esc(id)}" data-delta="1" aria-label="Aumentar">+</button>
+          <button data-id="${esc(id)}" data-delta="-1" aria-label="Diminuir quantidade">-</button>
+          <output aria-label="Quantidade">${qty}</output>
+          <button data-id="${esc(id)}" data-delta="1" aria-label="Aumentar quantidade">+</button>
         </span>
       </div>`;
   });
 
   $("count").textContent = count;
   $("total").textContent = formatBRL(total);
-  $("items").innerHTML = html || '<p style="color: var(--muted)">Seu carrinho está vazio.</p>';
+  $("items").innerHTML = html || '<p class="empty-cart">Seu carrinho está vazio.<br>Escolha um produto no catálogo para começar.</p>';
+  $("checkout").disabled = count === 0;
+}
+
+function openCart() {
+  $("drawer").classList.add("open");
+  $("closeCart").focus();
+}
+
+function closeCart() {
+  $("drawer").classList.remove("open");
 }
 
 function addToCart(id) {
@@ -260,8 +294,12 @@ function bindEvents() {
   });
 
   /* Abrir e fechar carrinho */
-  $("openCart").addEventListener("click", () => $("drawer").classList.add("open"));
-  $("shade").addEventListener("click", () => $("drawer").classList.remove("open"));
+  $("openCart").addEventListener("click", openCart);
+  $("closeCart").addEventListener("click", closeCart);
+  $("shade").addEventListener("click", closeCart);
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && $("drawer").classList.contains("open")) closeCart();
+  });
 
   /* Finalizar pedido */
   $("checkout").addEventListener("click", () => {

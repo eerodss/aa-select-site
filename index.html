@@ -103,6 +103,8 @@
             <div class="chips" id="chips"></div>
           </div>
 
+          <p class="result-count" id="resultCount" aria-live="polite"></p>
+
           <div class="grid" id="grid"></div>
           <div class="empty" id="empty">Nenhum produto encontrado. Tente outro termo.</div>
 
@@ -164,11 +166,14 @@
     <!-- ========== CARRINHO LATERAL ========== -->
     <div class="drawer" id="drawer">
       <div class="shade" id="shade"></div>
-      <div class="panel">
-        <h3>Seu carrinho</h3>
+      <div class="panel" role="dialog" aria-modal="true" aria-labelledby="cartTitle">
+        <div class="panel-head">
+          <h3 id="cartTitle">Seu carrinho</h3>
+          <button class="close" id="closeCart" aria-label="Fechar carrinho">×</button>
+        </div>
         <div class="items" id="items"></div>
         <div class="total"><span>Total</span><span id="total">R$ 0,00</span></div>
-        <button class="btn" id="checkout">Finalizar pedido</button>
+        <button class="btn block" id="checkout" disabled>Finalizar pedido</button>
       </div>
     </div>
 

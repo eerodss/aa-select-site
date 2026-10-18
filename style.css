@@ -72,6 +72,16 @@ a {
   text-decoration: none;
 }
 
+/* Foco visível para teclado (sem aparecer no clique do mouse) */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+button {
+  font-family: inherit;
+}
+
 .wrap {
   max-width: 1180px;
   margin: 0 auto;
@@ -196,6 +206,22 @@ nav a:hover {
 .btn:hover {
   background: var(--accent-dark);
   transform: translateY(-1px);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+.btn:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn.block {
+  display: block;
+  width: 100%;
+  text-align: center;
 }
 
 .btn.ghost {
@@ -350,7 +376,7 @@ section {
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
-  margin-bottom: 28px;
+  margin-bottom: 16px;
 }
 
 .search {
@@ -358,10 +384,11 @@ section {
   background: var(--surface);
   border: 1px solid var(--line);
   color: var(--text);
-  padding: 13px 18px;
+  padding: 13px 20px;
   border-radius: 99px;
   font: 400 14px Montserrat;
   outline: none;
+  transition: border-color .2s;
 }
 
 .search:focus {
@@ -372,21 +399,24 @@ section {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+  width: 100%;
 }
 
 .chip {
   background: none;
   border: 1px solid var(--line);
   color: var(--muted);
-  padding: 11px 18px;
+  padding: 10px 18px;
   border-radius: 99px;
   font: 500 13px Montserrat;
   cursor: pointer;
   transition: .2s;
+  white-space: nowrap;
 }
 
 .chip:hover {
   color: var(--text);
+  border-color: var(--accent);
 }
 
 .chip.on {
@@ -395,10 +425,45 @@ section {
   color: var(--on-accent);
 }
 
+.result-count {
+  margin: 0 0 22px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
   gap: 18px;
+}
+
+/* Placeholder animado enquanto os produtos carregam */
+.skeleton .ph,
+.skeleton .line {
+  background: linear-gradient(90deg, var(--surface) 25%, color-mix(in srgb, var(--line) 60%, var(--surface)) 50%, var(--surface) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+
+.skeleton .ph {
+  aspect-ratio: 4/5;
+  background-color: var(--surface);
+}
+
+.skeleton .line {
+  height: 14px;
+  border-radius: 6px;
+  margin: 8px 0;
+}
+
+.skeleton .line.short {
+  width: 40%;
+}
+
+@keyframes shimmer {
+  to {
+    background-position: -200% 0;
+  }
 }
 
 .card {
@@ -456,20 +521,28 @@ section {
 }
 
 .info h3 {
-  font-size: 22px;
+  font-size: 21px;
+  line-height: 1.2;
 }
 
 .price {
   font-weight: 600;
   color: var(--accent);
-  font-size: 18px;
+  font-size: 17px;
+}
+
+.price.quote {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--muted);
+  font-style: italic;
 }
 
 .add {
   margin-top: auto;
-  background: none;
+  background: var(--accent);
   border: 1px solid var(--accent);
-  color: var(--accent);
+  color: var(--on-accent);
   padding: 11px;
   border-radius: 10px;
   font: 600 12px Montserrat;
@@ -480,15 +553,31 @@ section {
 }
 
 .add:hover {
+  background: var(--accent-dark);
+  border-color: var(--accent-dark);
+}
+
+.add.outline {
+  background: none;
+  color: var(--accent);
+}
+
+.add.outline:hover {
   background: var(--accent);
   color: var(--on-accent);
+}
+
+.add:active {
+  transform: scale(.98);
 }
 
 .empty {
   text-align: center;
   color: var(--muted);
-  padding: 60px 0;
+  padding: 64px 20px;
   display: none;
+  border: 1px dashed var(--line);
+  border-radius: 18px;
 }
 
 .more {
@@ -614,9 +703,31 @@ footer .wrap {
   padding: calc(20px + env(safe-area-inset-top, 0px)) 20px calc(20px + env(safe-area-inset-bottom, 0px));
 }
 
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
 .panel h3 {
   font-size: 30px;
-  margin-bottom: 14px;
+}
+
+.close {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: none;
+  color: var(--text);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.close:hover {
+  border-color: var(--accent);
 }
 
 .items {
@@ -624,30 +735,63 @@ footer .wrap {
   overflow: auto;
 }
 
+.items .empty-cart {
+  color: var(--muted);
+  text-align: center;
+  padding: 40px 10px;
+  font-size: 14px;
+}
+
 .it {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 10px;
-  padding: 12px 0;
+  padding: 14px 0;
   border-bottom: 1px solid var(--line);
   font-size: 14px;
+}
+
+.it .it-name {
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.it small {
+  color: var(--muted);
 }
 
 .qty {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  flex-shrink: 0;
 }
 
 .qty button {
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   border: 1px solid var(--line);
   background: none;
   color: var(--text);
+  font-size: 16px;
   cursor: pointer;
+  transition: border-color .2s;
+}
+
+.qty button:hover {
+  border-color: var(--accent);
+}
+
+.qty output {
+  min-width: 18px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.panel #checkout {
+  margin-top: 14px;
 }
 
 .total {
@@ -699,6 +843,40 @@ footer .wrap {
     padding: 56px 0;
   }
   .btn.ghost {
+    margin: 10px 0 0;
+  }
+  .chips {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin: 0 -20px;
+    padding: 2px 20px 6px;
+  }
+  .chips::-webkit-scrollbar {
+    display: none;
+  }
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  .info {
+    padding: 14px 12px;
+  }
+  .info h3 {
+    font-size: 18px;
+  }
+  .add {
+    font-size: 11px;
+    padding: 10px 8px;
+  }
+  .search {
+    flex-basis: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero .btn.ghost {
+    display: block;
     margin: 10px 0 0;
   }
 }

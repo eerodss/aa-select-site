@@ -24,6 +24,7 @@ const initialOf = (name) =>
 const state = {
   products: [],
   categories: [], // [{ id, name }] na ordem de cadastro
+  loaded: false, // true depois da primeira leitura do banco
   term: "",
   category: "Todas",
   editing: null, // produto sendo editado (null = novo)
@@ -109,11 +110,14 @@ async function loadProducts() {
   if (products.error || categories.error) {
     console.error(products.error || categories.error);
     showToast("Erro ao carregar dados");
+    $("tableEmpty").style.display = "block";
+    $("tableEmpty").textContent = "Não foi possível carregar os produtos. Recarregue a página.";
     return;
   }
 
   state.products = products.data;
   state.categories = categories.data;
+  state.loaded = true;
   render();
 }
 
@@ -188,9 +192,20 @@ function renderRows() {
     )
     .join("");
 
+  $("resultCount").textContent = state.loaded
+    ? `Mostrando ${list.length} de ${state.products.length} ${state.products.length === 1 ? "produto" : "produtos"}`
+    : "";
+
   const empty = $("tableEmpty");
   empty.style.display = list.length ? "none" : "block";
-  empty.textContent = state.products.length ? "Nenhum produto encontrado." : "Nenhum produto cadastrado ainda.";
+
+  if (!state.loaded) {
+    empty.textContent = "Carregando produtos...";
+  } else if (!state.products.length) {
+    empty.innerHTML = `<span>Nenhum produto cadastrado ainda.</span><button class="btn small" data-new>+ Cadastrar primeiro produto</button>`;
+  } else {
+    empty.textContent = "Nenhum produto encontrado com esses filtros.";
+  }
 }
 
 function render() {
@@ -527,6 +542,10 @@ function bindEvents() {
 
     const del = e.target.closest("[data-delete]");
     if (del) removeProduct(state.products.find((p) => p.id === del.dataset.delete));
+  });
+
+  $("tableEmpty").addEventListener("click", (e) => {
+    if (e.target.closest("[data-new]")) openModal(null);
   });
 
   $("rows").addEventListener("change", (e) => {
