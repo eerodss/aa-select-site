@@ -93,7 +93,8 @@ function setupAuth() {
 
   $("logoutBtn").addEventListener("click", () => db.auth.signOut());
 
-  db.auth.onAuthStateChange((_event, session) => handleSession(session));
+  /* Sai do callback do Supabase antes de consultar o banco, senão a consulta pode travar */
+  db.auth.onAuthStateChange((_event, session) => setTimeout(() => handleSession(session), 0));
 }
 
 /* ----------------------------------------------------------
