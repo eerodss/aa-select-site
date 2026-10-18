@@ -828,6 +828,8 @@ footer .wrap {
   display: flex;
   align-items: center;
   gap: 14px;
+  width: max-content;
+  max-width: calc(100vw - 32px);
   pointer-events: auto;
   white-space: nowrap;
 }
