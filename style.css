@@ -57,7 +57,7 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font: 400 16px/1.6 Montserrat, system-ui, sans-serif;
+  font: 400 16px/1.6 "Figtree", system-ui, sans-serif;
 }
 
 h1, h2, h3 {
@@ -142,7 +142,7 @@ nav a:hover {
   color: var(--text);
   padding: 8px 14px;
   border-radius: 99px;
-  font: 600 13px Montserrat;
+  font: 600 13px "Figtree";
   cursor: pointer;
 }
 
@@ -195,7 +195,7 @@ nav a:hover {
   color: var(--on-accent);
   padding: 14px 30px;
   border-radius: 99px;
-  font: 600 13px Montserrat;
+  font: 600 13px "Figtree";
   letter-spacing: .08em;
   text-transform: uppercase;
   border: 0;
@@ -308,13 +308,7 @@ nav a:hover {
 }
 
 .pi {
-  width: 54px;
-  height: 54px;
-  border-radius: 16px;
-  display: grid;
-  place-items: center;
-  background: var(--accent);
-  color: var(--on-accent);
+  color: var(--accent);
   transition: transform .35s ease;
 }
 
@@ -322,7 +316,7 @@ nav a:hover {
   transform: scale(1.05);
 }
 
-.perk h3 {
+.perk h2 {
   font-size: 22px;
 }
 
@@ -386,7 +380,7 @@ section {
   color: var(--text);
   padding: 13px 20px;
   border-radius: 99px;
-  font: 400 14px Montserrat;
+  font: 400 14px "Figtree";
   outline: none;
   transition: border-color .2s;
 }
@@ -408,7 +402,7 @@ section {
   color: var(--muted);
   padding: 10px 18px;
   border-radius: 99px;
-  font: 500 13px Montserrat;
+  font: 500 13px "Figtree";
   cursor: pointer;
   transition: .2s;
   white-space: nowrap;
@@ -525,7 +519,7 @@ section {
   position: absolute;
   top: 12px;
   left: 12px;
-  font: 600 10px Montserrat;
+  font: 600 10px "Figtree";
   letter-spacing: .12em;
   text-transform: uppercase;
   background: var(--bg);
@@ -567,7 +561,7 @@ section {
   color: var(--on-accent);
   padding: 11px;
   border-radius: 10px;
-  font: 600 12px Montserrat;
+  font: 600 12px "Figtree";
   letter-spacing: .08em;
   text-transform: uppercase;
   cursor: pointer;
@@ -671,13 +665,18 @@ input, textarea {
   color: var(--text);
   padding: 14px 16px;
   border-radius: 12px;
-  font: 400 14px Montserrat;
+  font: 400 14px "Figtree";
   outline: none;
   width: 100%;
 }
 
 input:focus, textarea:focus {
   border-color: var(--accent);
+}
+
+input::placeholder, textarea::placeholder {
+  color: var(--muted);
+  opacity: 1;
 }
 
 /* Campo anti-robô: fica fora da tela para quem usa teclado ou leitor de tela */
@@ -850,7 +849,7 @@ footer .wrap {
   color: var(--on-accent);
   padding: 12px 22px;
   border-radius: 99px;
-  font: 600 13px Montserrat;
+  font: 600 13px "Figtree";
   opacity: 0;
   pointer-events: none;
   transition: .3s;
@@ -878,7 +877,7 @@ footer .wrap {
   border: 0;
   padding: 0;
   color: inherit;
-  font: 700 13px Montserrat;
+  font: 700 13px "Figtree";
   text-decoration: underline;
   text-underline-offset: 3px;
   cursor: pointer;
