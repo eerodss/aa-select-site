@@ -940,6 +940,96 @@ footer .wrap {
   cursor: pointer;
 }
 
+/* Aviso de cookies */
+.cookie-banner {
+  position: fixed;
+  left: 16px;
+  right: 16px;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  max-width: 560px;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px 24px;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 18px 20px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, .18);
+  font: 400 14px/1.5 "Figtree";
+  z-index: 70;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(20px);
+  transition: .3s;
+}
+
+.cookie-banner.on {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.cookie-banner strong {
+  display: block;
+  margin-bottom: 4px;
+  font: 700 15px "Figtree";
+}
+
+.cookie-banner p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.cookie-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.cookie-btn {
+  background: var(--accent);
+  color: var(--on-accent);
+  border: 1px solid var(--accent);
+  border-radius: 99px;
+  padding: 11px 20px;
+  font: 600 13px "Figtree";
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: .2s;
+}
+
+.cookie-btn:hover {
+  background: var(--accent-dark);
+  border-color: var(--accent-dark);
+}
+
+.cookie-btn.ghost {
+  background: none;
+  color: var(--text);
+  border-color: var(--line);
+}
+
+.cookie-btn.ghost:hover {
+  background: none;
+  border-color: var(--accent);
+}
+
+/* Botão de texto no rodapé (ex.: reabrir Preferências de cookies) */
+.link-btn {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
 /* Responsivo */
 @media (max-width: 780px) {
   .pills,
