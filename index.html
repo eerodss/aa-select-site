@@ -15,24 +15,35 @@
       href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=PT+Serif:wght@400;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="style.css?v=6" />
+    <link rel="stylesheet" href="style.css?v=7" />
   </head>
 
   <body>
     <!-- ========== CABEÇALHO ========== -->
     <header>
-      <div class="wrap bar">
-        <a class="logo" href="#top">A&amp;A <b>SELECT</b></a>
+      <div class="floating-bar">
+        <a class="logo" href="#top">
+          <span class="logo-mark" aria-hidden="true"></span>
+          A&amp;A <b>SELECT</b>
+        </a>
 
-        <nav>
+        <nav class="pills">
           <a href="#catalogo">Catálogo</a>
           <a href="#sobre">Sobre nós</a>
           <a href="#contato">Contato</a>
         </nav>
 
-        <button class="cartbtn" id="openCart" aria-label="Abrir carrinho">
-          Carrinho <i id="count">0</i>
-        </button>
+        <div class="bar-right">
+          <button class="cartbtn" id="openCart" aria-label="Abrir carrinho">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M6 7h12l-1 13H7L6 7z" />
+              <path d="M9 7V5a3 3 0 0 1 6 0v2" />
+            </svg>
+            <i id="count">0</i>
+          </button>
+          <span class="sep" aria-hidden="true"></span>
+          <a class="pill-cta" href="#contato">Falar conosco</a>
+        </div>
       </div>
     </header>
 
