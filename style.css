@@ -957,8 +957,11 @@ footer .wrap {
     width: 28px;
     height: 28px;
   }
+  .bar-right {
+    gap: 6px;
+  }
   .pill-cta {
-    padding: 9px 16px;
+    padding: 9px 14px;
     font-size: 12px;
   }
   .cols {
