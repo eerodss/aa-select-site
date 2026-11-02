@@ -127,15 +127,6 @@ header {
   color: var(--accent);
 }
 
-.logo-mark {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  border: 2px solid var(--accent);
-  box-shadow: inset 0 0 0 4px var(--bg), inset 0 0 0 6px var(--accent);
-  flex-shrink: 0;
-}
-
 /* Links do meio, dentro de uma pílula */
 .pills {
   display: flex;
@@ -1042,10 +1033,6 @@ footer .wrap {
   }
   .logo {
     font-size: 17px;
-  }
-  .logo-mark {
-    width: 28px;
-    height: 28px;
   }
   .bar-right {
     gap: 6px;
