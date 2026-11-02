@@ -529,7 +529,6 @@ section {
   .btn,
   .card,
   .chip,
-  .add,
   .toast {
     transition: none;
   }
@@ -539,28 +538,62 @@ section {
   }
 }
 
+/* Card de produto: foto, marca, nome, preço e botão do carrinho num recorte do canto */
 .card {
+  --n: 66px; /* tamanho do recorte do carrinho */
+  position: relative;
   background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: 20px;
   overflow: hidden;
+  padding: 10px;
   display: flex;
   flex-direction: column;
-  transition: transform .25s, border-color .25s;
+  transition: transform .25s, box-shadow .25s;
 }
 
 .card:hover {
   transform: translateY(-4px);
-  border-color: var(--accent-dark);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, .1);
+}
+
+.card::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: var(--n);
+  height: var(--n);
+  background: var(--bg);
+  border-top-left-radius: 22px;
+}
+
+/* Cantos arredondados do card onde o recorte começa */
+.card::before {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: calc(var(--n) + 16px);
+  height: calc(var(--n) + 16px);
+  background:
+    radial-gradient(circle at 0 0, transparent 15.5px, var(--bg) 16px) right top / 16px 16px no-repeat,
+    radial-gradient(circle at 0 0, transparent 15.5px, var(--bg) 16px) left bottom / 16px 16px no-repeat;
+}
+
+.card.skeleton::before,
+.card.skeleton::after {
+  display: none;
 }
 
 .ph {
-  aspect-ratio: 4/5;
+  aspect-ratio: 1 / 1;
   display: grid;
   place-items: center;
   font: 700 64px "PT Serif", serif;
   color: var(--accent);
-  background: linear-gradient(160deg, color-mix(in srgb, var(--accent) 14%, var(--surface)), var(--surface));
+  background: var(--bg);
+  border-radius: 14px;
+  overflow: hidden;
   position: relative;
 }
 
@@ -572,37 +605,71 @@ section {
   object-fit: cover;
 }
 
-.tag {
+.badge-off {
   position: absolute;
-  top: 12px;
-  left: 12px;
-  font: 600 10px "Figtree";
-  letter-spacing: .12em;
-  text-transform: uppercase;
-  background: var(--bg);
-  color: var(--muted);
-  padding: 5px 10px;
+  top: 10px;
+  left: 10px;
+  z-index: 1;
+  background: var(--gold);
+  color: var(--on-gold);
+  font: 600 11px "Figtree";
+  padding: 5px 11px;
   border-radius: 99px;
 }
 
+.zoom {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 1;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  transition: background .2s;
+}
+
+.zoom:hover {
+  background: var(--gold);
+  color: var(--on-gold);
+}
+
 .info {
-  padding: 16px;
+  padding: 12px 4px 6px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 2px;
   flex: 1;
+  min-height: 88px;
+}
+
+/* O preço fica ao lado do recorte do carrinho; marca e nome usam a largura toda */
+.info .price,
+.info .was {
+  padding-right: calc(var(--n) + 8px);
+}
+
+.info .brand {
+  font-size: 13px;
+  color: var(--muted);
 }
 
 .info h3 {
-  font-size: 21px;
-  line-height: 1.2;
+  font: 600 15px/1.25 "Figtree", sans-serif;
+  margin-bottom: 6px;
 }
 
 .price {
   margin-top: auto;
-  font-weight: 600;
-  color: var(--gold-text);
-  font-size: 17px;
+  font-weight: 700;
+  color: var(--text);
+  font-size: 19px;
 }
 
 .price.quote {
@@ -612,37 +679,222 @@ section {
   font-style: italic;
 }
 
-.add {
-  background: var(--gold);
-  border: 1px solid var(--gold);
-  color: var(--on-gold);
-  padding: 11px;
-  border-radius: 10px;
-  font: 600 12px "Figtree";
-  letter-spacing: .08em;
-  text-transform: uppercase;
+.was {
+  font-size: 13px;
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
+.cart-fab {
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  z-index: 1;
+  width: calc(var(--n) - 16px);
+  height: calc(var(--n) - 16px);
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border-radius: 16px;
+  border: 1.5px solid var(--gold-dark);
+  background: var(--surface);
+  color: var(--text);
   cursor: pointer;
-  transition: .2s;
+  transition: background .2s, transform .2s;
 }
 
-.add:hover {
-  background: var(--gold-dark);
-  border-color: var(--gold-dark);
-}
-
-.add.outline {
-  background: none;
-  color: var(--gold-text);
-  border-color: var(--gold);
-}
-
-.add.outline:hover {
+.cart-fab:hover {
   background: var(--gold);
   color: var(--on-gold);
 }
 
-.add:active {
-  transform: scale(.98);
+.cart-fab:active {
+  transform: scale(.96);
+}
+
+/* Popup do produto (ampliar) */
+.pm {
+  width: min(860px, calc(100% - 32px));
+  max-height: calc(100vh - 32px);
+  margin: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 22px;
+  background: var(--bg);
+  color: var(--text);
+  overflow: hidden;
+}
+
+.pm[open] {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.pm::backdrop {
+  background: rgba(15, 20, 32, .6);
+}
+
+.pm-photo {
+  position: relative;
+  min-height: 440px;
+  background: var(--surface);
+}
+
+.pm-slide {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font: 700 120px "PT Serif", serif;
+  color: var(--accent);
+}
+
+.pm-slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pm-photo .badge-off {
+  top: 16px;
+  left: 16px;
+  font-size: 12px;
+  padding: 6px 12px;
+}
+
+.pm-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .9);
+  color: #2b3347;
+  cursor: pointer;
+}
+
+.pm-arrow[hidden] {
+  display: none;
+}
+
+.pm-arrow.prev {
+  left: 12px;
+}
+
+.pm-arrow.next {
+  right: 12px;
+}
+
+.pm-dots {
+  position: absolute;
+  bottom: 14px;
+  left: 0;
+  right: 0;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  gap: 7px;
+}
+
+.pm-dot {
+  width: 9px;
+  height: 9px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .8);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, .2);
+  cursor: pointer;
+}
+
+.pm-dot.on {
+  background: var(--gold-dark);
+}
+
+.pm-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.pm-close:hover {
+  background: var(--gold);
+  color: var(--on-gold);
+}
+
+.pm-body {
+  display: flex;
+  flex-direction: column;
+  padding: 34px 28px 28px;
+  overflow: auto;
+}
+
+.pm-cat {
+  margin: 0 44px 8px 0;
+  font: 600 11px "Figtree";
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.pm-body h2 {
+  margin: 0 0 6px;
+  font-size: 30px;
+  line-height: 1.15;
+}
+
+.pm-brand {
+  margin: 0 0 14px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.pm-keys {
+  margin: 0 0 10px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.pm-desc {
+  margin: 0 0 18px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.pm-price {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin: auto 0 14px;
+}
+
+.pm-price .price {
+  margin: 0;
+  font-size: 32px;
+}
+
+.pm-price .was {
+  font-size: 16px;
 }
 
 .empty {
@@ -1082,15 +1334,27 @@ footer .wrap {
     grid-template-columns: repeat(2, 1fr);
     gap: 12px;
   }
+  .card {
+    --n: 58px;
+    padding: 8px;
+  }
   .info {
-    padding: 14px 12px;
+    padding: 10px 2px 4px;
   }
   .info h3 {
-    font-size: 18px;
+    font-size: 14px;
   }
-  .add {
-    font-size: 11px;
-    padding: 10px 8px;
+  .pm[open] {
+    grid-template-columns: 1fr;
+    overflow: auto;
+  }
+  .pm-photo {
+    min-height: 0;
+    aspect-ratio: 1 / 1;
+  }
+  .pm-body {
+    padding: 22px 20px;
+    overflow: visible;
   }
   .search {
     flex-basis: 100%;

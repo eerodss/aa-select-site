@@ -46,11 +46,13 @@ async function loadProducts() {
     return;
   }
 
-  const { data, error } = await db
-    .from("products")
-    .select("id, name, price, category, image_url")
-    .eq("active", true)
-    .order("seq", { ascending: true });
+  const fetchProducts = (fields) =>
+    db.from("products").select(fields).eq("active", true).order("seq", { ascending: true });
+
+  let { data, error } = await fetchProducts("id, name, price, category, image_url, brand, original_price, keywords, description, images");
+
+  /* Se o banco ainda não tem as colunas novas, carrega só os campos antigos */
+  if (error) ({ data, error } = await fetchProducts("id, name, price, category, image_url"));
 
   if (error) {
     console.error(error);
@@ -101,12 +103,29 @@ function getFilteredProducts() {
   );
 }
 
+const ICONS = {
+  cart: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 7h12l-1 13H7L6 7z"/><path d="M9 7V5a3 3 0 0 1 6 0v2"/></svg>',
+  chat: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4V5z"/></svg>',
+  expand: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>',
+};
+
+/* Desconto: o preço final é o campo "price"; "original_price" é o preço cheio riscado */
+const hasDiscount = (p) => p.price !== null && p.original_price != null && Number(p.original_price) > Number(p.price);
+
+const discountBadge = (p) =>
+  hasDiscount(p) ? `<span class="badge-off">${Math.max(1, Math.round((1 - Number(p.price) / Number(p.original_price)) * 100))}% Off</span>` : "";
+
+function priceHTML(p) {
+  if (p.price === null) return '<div class="price quote">Sob consulta</div>';
+  const was = hasDiscount(p) ? `<div class="was">${formatBRL(Number(p.original_price))}</div>` : "";
+  return `<div class="price">${formatBRL(Number(p.price))}</div>${was}`;
+}
+
 function productCard(product) {
-  const hasPrice = product.price !== null;
-  const price = hasPrice ? `<div class="price">${formatBRL(Number(product.price))}</div>` : `<div class="price quote">Sob consulta</div>`;
-  const action = hasPrice
-    ? `<button class="add" data-add="${esc(product.id)}" aria-label="Adicionar ${esc(product.name)} ao carrinho">Adicionar ao carrinho</button>`
-    : `<button class="add outline" data-ask aria-label="Solicitar orçamento de ${esc(product.name)}">Solicitar orçamento</button>`;
+  const fab =
+    product.price !== null
+      ? `<button class="cart-fab" data-add="${esc(product.id)}" aria-label="Adicionar ${esc(product.name)} ao carrinho">${ICONS.cart}</button>`
+      : `<button class="cart-fab" data-ask aria-label="Solicitar orçamento de ${esc(product.name)}">${ICONS.chat}</button>`;
   const visual = product.image_url
     ? `<img src="${esc(product.image_url)}" alt="${esc(product.name)}" loading="lazy" />`
     : esc(initialOf(product.name));
@@ -115,14 +134,78 @@ function productCard(product) {
     <article class="card">
       <div class="ph">
         ${visual}
-        <span class="tag">${esc(product.category)}</span>
+        ${discountBadge(product)}
+        <button class="zoom" data-zoom="${esc(product.id)}" aria-label="Ver ${esc(product.name)} ampliado">${ICONS.expand}</button>
       </div>
       <div class="info">
+        ${product.brand ? `<span class="brand">${esc(product.brand)}</span>` : ""}
         <h3>${esc(product.name)}</h3>
-        ${price}
-        ${action}
+        ${priceHTML(product)}
       </div>
+      ${fab}
     </article>`;
+}
+
+/* ----------------------------------------------------------
+   POPUP DO PRODUTO (ampliar): fotos passam sozinhas a cada 5 s
+   ---------------------------------------------------------- */
+const SLIDE_INTERVAL = 5000;
+const popup = { product: null, photos: [], index: 0, timer: null };
+
+function renderSlide() {
+  const { product, photos, index } = popup;
+  $("pmSlide").innerHTML = photos.length
+    ? `<img src="${esc(photos[index])}" alt="${esc(product.name)}" />`
+    : `<span>${esc(initialOf(product.name))}</span>`;
+
+  const multiple = photos.length > 1;
+  $("pmPrev").hidden = !multiple;
+  $("pmNext").hidden = !multiple;
+  $("pmDots").innerHTML = multiple
+    ? photos.map((_, i) => `<button class="pm-dot${i === index ? " on" : ""}" data-dot="${i}" aria-label="Foto ${i + 1}"></button>`).join("")
+    : "";
+}
+
+function startSlideTimer() {
+  clearInterval(popup.timer);
+  if (popup.photos.length > 1) popup.timer = setInterval(() => goToSlide(popup.index + 1), SLIDE_INTERVAL);
+}
+
+function goToSlide(i) {
+  popup.index = (i + popup.photos.length) % popup.photos.length;
+  renderSlide();
+  startSlideTimer();
+}
+
+function openProduct(id) {
+  const product = findProduct(id);
+  if (!product) return;
+
+  popup.product = product;
+  popup.photos = [product.image_url, ...(Array.isArray(product.images) ? product.images : [])].filter(Boolean);
+  popup.index = 0;
+
+  const setText = (el, text) => {
+    $(el).textContent = text || "";
+    $(el).hidden = !text;
+  };
+
+  $("pmBadge").innerHTML = discountBadge(product);
+  setText("pmCat", product.category);
+  setText("pmName", product.name);
+  setText("pmBrand", product.brand);
+  setText("pmKeys", product.keywords);
+  setText("pmDesc", product.description);
+  $("pmPrice").innerHTML = priceHTML(product);
+  $("pmAdd").textContent = product.price !== null ? "Adicionar ao carrinho" : "Solicitar orçamento";
+
+  renderSlide();
+  startSlideTimer();
+  $("productModal").showModal();
+}
+
+function closeProduct() {
+  $("productModal").close();
 }
 
 const STATUS_MESSAGES = {
@@ -388,10 +471,39 @@ function bindEvents() {
     const add = event.target.closest("[data-add]");
     if (add) return addToCart(add.dataset.add);
 
+    const zoom = event.target.closest("[data-zoom]");
+    if (zoom) return openProduct(zoom.dataset.zoom);
+
     if (event.target.closest("[data-ask]")) {
       showToast("Fale conosco pela seção de contato");
       location.hash = "contato";
     }
+  });
+
+  /* Popup do produto */
+  const modal = $("productModal");
+  $("pmClose").addEventListener("click", closeProduct);
+  $("pmPrev").addEventListener("click", () => goToSlide(popup.index - 1));
+  $("pmNext").addEventListener("click", () => goToSlide(popup.index + 1));
+  $("pmDots").addEventListener("click", (event) => {
+    const dot = event.target.closest("[data-dot]");
+    if (dot) goToSlide(Number(dot.dataset.dot));
+  });
+  $("pmAdd").addEventListener("click", () => {
+    const { product } = popup;
+    closeProduct();
+    if (product.price !== null) return addToCart(product.id);
+    showToast("Fale conosco pela seção de contato");
+    location.hash = "contato";
+  });
+  /* Clique fora do popup fecha; ao fechar, para a troca automática de fotos */
+  modal.addEventListener("click", (event) => {
+    if (event.target === modal) closeProduct();
+  });
+  modal.addEventListener("close", () => clearInterval(popup.timer));
+  modal.addEventListener("keydown", (event) => {
+    if (event.key === "ArrowLeft") goToSlide(popup.index - 1);
+    if (event.key === "ArrowRight") goToSlide(popup.index + 1);
   });
 
   /* Quantidade no carrinho */
