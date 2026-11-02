@@ -268,6 +268,43 @@ function renderChips() {
    ---------------------------------------------------------- */
 const findProduct = (id) => state.products.find((p) => p.id === id);
 
+/* O carrinho só fica salvo no navegador se o visitante aceitou os cookies */
+const CART_KEY = "aa-select-cart";
+const canSaveCart = () => Boolean(window.cookieConsent) && window.cookieConsent.get() === "accepted";
+
+function saveCart() {
+  try {
+    if (canSaveCart() && Object.keys(state.cart).length) localStorage.setItem(CART_KEY, JSON.stringify(state.cart));
+    else localStorage.removeItem(CART_KEY);
+  } catch {
+    /* navegador bloqueou o armazenamento: o carrinho só vale até recarregar */
+  }
+}
+
+function loadSavedCart() {
+  if (!canSaveCart()) return;
+
+  try {
+    const saved = JSON.parse(localStorage.getItem(CART_KEY));
+    if (!saved || typeof saved !== "object") return;
+
+    Object.entries(saved).forEach(([id, qty]) => {
+      if (Number.isInteger(qty) && qty > 0 && qty <= 999) state.cart[id] = qty;
+    });
+  } catch {
+    /* dado salvo inválido: começa com o carrinho vazio */
+  }
+}
+
+/* Tira do carrinho o que saiu do catálogo ou ficou sem preço desde a última visita */
+function pruneCart() {
+  Object.keys(state.cart).forEach((id) => {
+    const product = findProduct(id);
+    if (!product || product.price === null) delete state.cart[id];
+  });
+  saveCart();
+}
+
 function renderCart() {
   let count = 0;
   let total = 0;
@@ -312,6 +349,7 @@ function closeCart() {
 
 function addToCart(id) {
   state.cart[id] = (state.cart[id] || 0) + 1;
+  saveCart();
   renderCart();
   showToast("Adicionado ao carrinho", { label: "Ver carrinho", onClick: openCart });
 }
@@ -319,6 +357,7 @@ function addToCart(id) {
 function changeQuantity(id, delta) {
   state.cart[id] = (state.cart[id] || 0) + delta;
   if (state.cart[id] <= 0) delete state.cart[id];
+  saveCart();
   renderCart();
 }
 
@@ -535,9 +574,14 @@ async function init() {
   setupPerksAnimation();
   renderChips();
   renderGrid();
+  loadSavedCart();
   renderCart();
 
+  /* Aceitar os cookies salva o carrinho atual; escolher só essenciais apaga o que estava salvo */
+  document.addEventListener("cookieconsentchange", saveCart);
+
   await loadProducts();
+  if (state.status === "ready") pruneCart();
 
   renderChips();
   renderGrid();
