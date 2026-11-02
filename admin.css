@@ -110,7 +110,7 @@
 
 .stat b {
   display: block;
-  font: 700 28px "PT Serif", serif;
+  font: 700 28px "Fraunces", serif;
 }
 
 .stat span {
@@ -126,7 +126,7 @@
   color: var(--text);
   padding: 13px 18px;
   border-radius: 99px;
-  font: 400 14px Montserrat, sans-serif;
+  font: 400 14px Outfit, sans-serif;
 }
 
 /* Tabela */
@@ -195,7 +195,7 @@ tr.off td:not(:last-child) {
   overflow: hidden;
   display: grid;
   place-items: center;
-  font: 700 20px "PT Serif", serif;
+  font: 700 20px "Fraunces", serif;
   color: var(--accent);
   background: color-mix(in srgb, var(--accent) 10%, var(--surface));
 }
@@ -225,7 +225,7 @@ tr.off td:not(:last-child) {
   color: var(--text);
   padding: 8px 14px;
   border-radius: 10px;
-  font: 500 12px Montserrat, sans-serif;
+  font: 500 12px Outfit, sans-serif;
   cursor: pointer;
   transition: border-color 0.2s, color 0.2s;
 }
@@ -387,7 +387,7 @@ dialog select {
   color: var(--text);
   border: 1px solid var(--line);
   border-radius: 12px;
-  font: 400 15px Montserrat, sans-serif;
+  font: 400 15px Outfit, sans-serif;
   text-transform: none;
   letter-spacing: 0;
   font-weight: 400;
@@ -441,7 +441,7 @@ dialog select {
   color: var(--text);
   border: 1px solid var(--line);
   border-radius: 10px;
-  font: 400 15px Montserrat, sans-serif;
+  font: 400 15px Outfit, sans-serif;
 }
 
 .cat-list .muted {
@@ -458,7 +458,7 @@ dialog select {
   border-radius: 99px;
   background: var(--accent);
   color: var(--on-accent);
-  font: 700 11px Montserrat, sans-serif;
+  font: 700 11px Outfit, sans-serif;
   font-style: normal;
 }
 
@@ -657,7 +657,7 @@ dialog textarea {
   color: var(--text);
   border: 1px solid var(--line);
   border-radius: 12px;
-  font: 400 15px Montserrat, sans-serif;
+  font: 400 15px Outfit, sans-serif;
   text-transform: none;
   letter-spacing: 0;
   resize: vertical;
@@ -667,7 +667,7 @@ dialog textarea {
   align-self: end;
   margin: 0;
   padding: 12px 0;
-  font: 600 14px Montserrat, sans-serif;
+  font: 600 14px Outfit, sans-serif;
   color: var(--text);
 }
 
@@ -725,7 +725,7 @@ dialog textarea {
   border-radius: 50%;
   background: rgba(0, 0, 0, 0.65);
   color: #fff;
-  font: 700 13px/1 Montserrat, sans-serif;
+  font: 700 13px/1 Outfit, sans-serif;
   cursor: pointer;
 }
 
@@ -764,6 +764,6 @@ dialog textarea {
   border-radius: 99px;
   background: var(--gold);
   color: var(--on-gold);
-  font: 600 11px Montserrat, sans-serif;
+  font: 600 11px Outfit, sans-serif;
   vertical-align: middle;
 }
