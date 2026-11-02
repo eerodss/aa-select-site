@@ -15,7 +15,7 @@
       href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=PT+Serif:wght@400;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="style.css?v=24" />
+    <link rel="stylesheet" href="style.css?v=25" />
   </head>
 
   <body>
@@ -49,6 +49,17 @@
     <main id="top">
       <!-- ========== HERO ========== -->
       <div class="hero">
+        <!-- Fundo: monograma A&A em padrão bem suave, com o centro mais claro -->
+        <svg class="hero-pattern" aria-hidden="true" focusable="false">
+          <defs>
+            <pattern id="monogram" width="110" height="80" patternUnits="userSpaceOnUse" patternTransform="rotate(-18)">
+              <text x="10" y="34">A&amp;A</text>
+              <text x="65" y="74">A&amp;A</text>
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#monogram)" />
+        </svg>
+        <div class="hero-fade"></div>
         <div class="wrap">
           <h1>Presença onde<br />você estiver</h1>
           <p>
@@ -96,6 +107,19 @@
           <p>De segunda a sexta, das 08h às 18h, e aos sábados até as 12h.</p>
         </div>
       </div>
+
+      <!-- ========== TOP 5 (escolhido no painel; some se nenhum produto estiver no Top 5) ========== -->
+      <section class="top5" id="top5" hidden>
+        <div class="wrap">
+          <div class="head">
+            <div>
+              <div class="eyebrow">Os mais desejados</div>
+              <h2>Top 5 perfumes</h2>
+            </div>
+          </div>
+          <div class="top5-grid" id="top5Grid"></div>
+        </div>
+      </section>
 
       <!-- ========== CATÁLOGO ========== -->
       <section id="catalogo">
@@ -251,6 +275,6 @@
     ></script>
     <script src="config.js"></script>
     <script src="cookies.js"></script>
-    <script src="script.js?v=17"></script>
+    <script src="script.js?v=18"></script>
   </body>
 </html>

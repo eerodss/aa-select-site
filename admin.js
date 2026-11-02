@@ -34,6 +34,7 @@ const state = {
   removeImage: false,
   extraKeep: [], // URLs das fotos extras que continuam no produto
   extraNew: [], // fotos extras novas: { blob, preview }
+  hasTopRank: false, // o banco já tem a coluna top_rank?
 };
 
 const MAX_EXTRA_IMAGES = 8;
@@ -116,10 +117,12 @@ function setupAuth() {
    DADOS
    ---------------------------------------------------------- */
 async function loadProducts() {
-  const [products, categories] = await Promise.all([
+  const [products, categories, topProbe] = await Promise.all([
     db.from("products").select("*").order("seq", { ascending: true }),
     db.from("categories").select("id, name").order("seq", { ascending: true }),
+    db.from("products").select("top_rank").limit(1), // erro = o banco ainda não tem a coluna do Top 5
   ]);
+  state.hasTopRank = !topProbe.error;
 
   if (products.error || categories.error) {
     console.error(products.error || categories.error);
@@ -353,7 +356,7 @@ function renderRows() {
       (p) => `
       <tr class="${p.active ? "" : "off"}">
         <td>${thumbHTML(p)}</td>
-        <td class="name">${p.brand ? `<span class="row-brand">${esc(p.brand)}</span>` : ""}${esc(p.name)}</td>
+        <td class="name">${p.brand ? `<span class="row-brand">${esc(p.brand)}</span>` : ""}${esc(p.name)}${p.top_rank ? ` <span class="row-top">Top ${p.top_rank}</span>` : ""}</td>
         <td class="muted">${esc(p.category)}</td>
         <td class="nowrap">${priceCell(p)}</td>
         <td>
@@ -481,6 +484,20 @@ function updateDiscountUI() {
   $("finalPreview").textContent = ready ? `Preço final: ${formatBRL(computeFinalPrice(original, type, value))}` : "";
 }
 
+/* Posição no Top 5: mostra quem ocupa cada lugar. Escolher um lugar ocupado troca o produto de lugar. */
+function fillTopRankSelect(product) {
+  $("topRankField").hidden = !state.hasTopRank;
+  if (!state.hasTopRank) return;
+
+  const options = ['<option value="">Fora do Top 5</option>'];
+  for (let n = 1; n <= 5; n++) {
+    const holder = state.products.find((p) => p.top_rank === n && (!product || p.id !== product.id));
+    options.push(`<option value="${n}">${n}º lugar${holder ? ` (hoje: ${esc(holder.name)})` : ""}</option>`);
+  }
+  $("fTopRank").innerHTML = options.join("");
+  $("fTopRank").value = product && product.top_rank ? String(product.top_rank) : "";
+}
+
 function openModal(product) {
   state.editing = product || null;
   state.newFile = null;
@@ -502,6 +519,7 @@ function openModal(product) {
   $("fExtraFiles").value = "";
   renderExtras();
   updateDiscountUI();
+  fillTopRankSelect(product);
   fillCategorySelect(product ? product.category : "");
   $("fActive").checked = product ? product.active : true;
   $("fFile").value = "";
@@ -599,6 +617,19 @@ async function saveProduct(event) {
       images,
       active: $("fActive").checked,
     };
+
+    /* Top 5: libera o lugar escolhido (quem estava nele sai do Top 5) antes de salvar */
+    if (state.hasTopRank) {
+      const topRank = $("fTopRank").value ? Number($("fTopRank").value) : null;
+      payload.top_rank = topRank;
+
+      if (topRank) {
+        let free = db.from("products").update({ top_rank: null }).eq("top_rank", topRank);
+        if (state.editing) free = free.neq("id", state.editing.id);
+        const { error: freeError } = await free;
+        if (freeError) throw freeError;
+      }
+    }
 
     const query = state.editing
       ? db.from("products").update(payload).eq("id", state.editing.id)

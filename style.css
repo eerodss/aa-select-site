@@ -227,9 +227,42 @@ header {
 
 /* Hero */
 .hero {
+  position: relative;
+  overflow: hidden;
   padding: 96px 0 80px;
   text-align: center;
-  background: radial-gradient(60% 70% at 50% 0%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 70%);
+  background: radial-gradient(60% 32% at 50% 68%, color-mix(in srgb, var(--gold) 45%, transparent), transparent);
+}
+
+.hero > .wrap {
+  position: relative;
+  z-index: 1;
+}
+
+/* Monograma A&A repetido, em dourado bem suave */
+.hero-pattern {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.hero-pattern text {
+  font: 700 24px "PT Serif", serif;
+  fill: var(--gold-dark);
+  fill-opacity: .22;
+}
+
+/* Deixa o centro mais limpo para o título ficar legível */
+.hero-fade {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 55% 60% at 50% 48%,
+    color-mix(in srgb, var(--bg) 96%, transparent),
+    color-mix(in srgb, var(--bg) 80%, transparent) 60%,
+    transparent
+  );
 }
 
 .eyebrow {
@@ -492,6 +525,42 @@ section {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
   gap: 18px;
+}
+
+/* Top 5: 5 cards lado a lado; em telas menores, 3 por linha; no celular, uma faixa que rola de lado */
+.top5 {
+  padding-bottom: 0;
+}
+
+.top5-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.rank {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 1;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--gold-dark);
+  color: var(--on-gold);
+  font: 700 15px "Figtree";
+}
+
+.top5-grid .badge-off {
+  top: 50px;
+}
+
+@media (max-width: 1020px) {
+  .top5-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 /* Placeholder animado enquanto os produtos carregam */
@@ -1401,6 +1470,22 @@ footer .wrap {
   .grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 12px;
+  }
+  .top5-grid {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    margin: 0 -20px;
+    padding: 2px 20px 8px;
+  }
+  .top5-grid::-webkit-scrollbar {
+    display: none;
+  }
+  .top5-grid > .card {
+    flex: 0 0 66%;
+    scroll-snap-align: start;
   }
   .card {
     --n: 58px;

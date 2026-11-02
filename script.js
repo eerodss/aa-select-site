@@ -49,9 +49,11 @@ async function loadProducts() {
   const fetchProducts = (fields) =>
     db.from("products").select(fields).eq("active", true).order("seq", { ascending: true });
 
-  let { data, error } = await fetchProducts("id, name, price, category, image_url, brand, original_price, keywords, description, images");
+  const fields = "id, name, price, category, image_url, brand, original_price, keywords, description, images";
+  let { data, error } = await fetchProducts(`${fields}, top_rank`);
 
-  /* Se o banco ainda não tem as colunas novas, carrega só os campos antigos */
+  /* Se o banco ainda não tem as colunas novas, tenta sem elas e, por último, só com os campos antigos */
+  if (error) ({ data, error } = await fetchProducts(fields));
   if (error) ({ data, error } = await fetchProducts("id, name, price, category, image_url"));
 
   if (error) {
@@ -121,7 +123,8 @@ function priceHTML(p) {
   return `<div class="price">${formatBRL(Number(p.price))}</div>${was}`;
 }
 
-function productCard(product) {
+/* rank (1 a 5) só é passado nos cards do Top 5 */
+function productCard(product, rank) {
   const fab =
     product.price !== null
       ? `<button class="cart-fab" data-add="${esc(product.id)}" aria-label="Adicionar ${esc(product.name)} ao carrinho">${ICONS.cart}</button>`
@@ -134,6 +137,7 @@ function productCard(product) {
     <article class="card" data-open="${esc(product.id)}">
       <div class="ph">
         ${visual}
+        ${rank ? `<span class="rank" aria-label="${rank}º lugar">${rank}</span>` : ""}
         ${discountBadge(product)}
         <button class="zoom" aria-label="Ver ${esc(product.name)} ampliado">${ICONS.expand}</button>
       </div>
@@ -254,11 +258,21 @@ function renderGrid() {
   }
 
   const list = getFilteredProducts();
-  $("grid").innerHTML = list.slice(0, state.limit).map(productCard).join("");
+  $("grid").innerHTML = list.slice(0, state.limit).map((product) => productCard(product)).join("");
   countEl.textContent = list.length === 1 ? "1 produto encontrado" : `${list.length} produtos encontrados`;
   emptyEl.textContent = STATUS_MESSAGES.empty;
   emptyEl.style.display = list.length ? "none" : "block";
   $("more").style.display = list.length > state.limit ? "inline-block" : "none";
+}
+
+/* Top 5: produtos com posição de 1 a 5, definida no painel. Sem nenhum, a seção some. */
+function renderTop5() {
+  const top = state.products
+    .filter((product) => Number.isInteger(product.top_rank) && product.top_rank >= 1 && product.top_rank <= 5)
+    .sort((a, b) => a.top_rank - b.top_rank);
+
+  $("top5").hidden = state.status !== "ready" || top.length === 0;
+  $("top5Grid").innerHTML = top.map((product) => productCard(product, product.top_rank)).join("");
 }
 
 function renderChips() {
@@ -605,7 +619,7 @@ function bindEvents() {
   });
 
   /* Botões dos cards */
-  $("grid").addEventListener("click", (event) => {
+  const onProductClick = (event) => {
     const add = event.target.closest("[data-add]");
     if (add) return addToCart(add.dataset.add);
 
@@ -618,7 +632,9 @@ function bindEvents() {
     /* Clicar em qualquer parte do card (foto, nome, ícone de ampliar) abre o popup */
     const card = event.target.closest("[data-open]");
     if (card) openProduct(card.dataset.open);
-  });
+  };
+  $("grid").addEventListener("click", onProductClick);
+  $("top5Grid").addEventListener("click", onProductClick);
 
   /* Popup do produto */
   const modal = $("productModal");
@@ -688,6 +704,7 @@ async function init() {
   if (state.status === "ready") pruneCart();
 
   renderChips();
+  renderTop5();
   renderGrid();
   renderCart();
 }

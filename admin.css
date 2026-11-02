@@ -755,3 +755,15 @@ dialog textarea {
   border-color: var(--gold-dark);
   background: color-mix(in srgb, var(--gold) 25%, transparent);
 }
+
+/* Selo "Top n" na lista de produtos */
+.row-top {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 2px 8px;
+  border-radius: 99px;
+  background: var(--gold);
+  color: var(--on-gold);
+  font: 600 11px Montserrat, sans-serif;
+  vertical-align: middle;
+}
