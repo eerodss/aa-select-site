@@ -1223,8 +1223,8 @@ footer .wrap {
   left: 50%;
   bottom: calc(24px + env(safe-area-inset-bottom, 0px));
   transform: translate(-50%, 20px);
-  background: var(--accent);
-  color: var(--on-accent);
+  background: var(--gold);
+  color: var(--on-gold);
   padding: 12px 22px;
   border-radius: 99px;
   font: 600 13px "Figtree";

@@ -431,6 +431,12 @@ async function saveOrder(items, total) {
 /* ----------------------------------------------------------
    CONTATO
    ---------------------------------------------------------- */
+const CONTACT_RULE_ERRORS = {
+  messages_name_check: "Informe seu nome (pelo menos 2 letras).",
+  messages_contact_check: "Informe um e-mail válido ou um telefone com DDD.",
+  messages_message_check: "Escreva uma mensagem com pelo menos 5 caracteres.",
+};
+
 async function sendContact(event) {
   event.preventDefault();
   const form = event.target;
@@ -460,23 +466,37 @@ async function sendContact(event) {
     return;
   }
 
+  /* Mesmas regras do banco (nome com 2+ letras, mensagem com 5+ caracteres), avisando o que falta */
+  const name = String(data.get("name")).trim().replace(/\s+/g, " ");
+  const message = String(data.get("message")).trim();
+
+  if (name.length < 2) {
+    status.textContent = "Informe seu nome (pelo menos 2 letras).";
+    return;
+  }
+  if (message.length < 5) {
+    status.textContent = "Escreva uma mensagem com pelo menos 5 caracteres.";
+    return;
+  }
+
   btn.disabled = true;
   btn.textContent = "Enviando...";
   status.textContent = "";
 
-  const { error } = await db.from("messages").insert({
-    name: String(data.get("name")).trim().replace(/\s+/g, " "),
-    contact,
-    message: String(data.get("message")).trim(),
-  });
+  const { error } = await db.from("messages").insert({ name, contact, message });
 
   btn.disabled = false;
   btn.textContent = "Enviar mensagem";
 
   if (error) {
     console.error(error);
-    status.textContent =
-      error.code === "23514" ? "Confira os dados preenchidos e tente de novo." : "Não foi possível enviar. Tente novamente em instantes.";
+    /* O banco diz qual regra falhou; mostramos o campo certo em vez de um aviso genérico */
+    const rule = Object.keys(CONTACT_RULE_ERRORS).find((key) => `${error.message} ${error.details || ""}`.includes(key));
+    status.textContent = rule
+      ? CONTACT_RULE_ERRORS[rule]
+      : error.code === "23514"
+        ? "Confira os dados preenchidos e tente de novo."
+        : "Não foi possível enviar. Tente novamente em instantes.";
     return;
   }
 
