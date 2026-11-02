@@ -775,6 +775,67 @@ async function removeProduct(product) {
 }
 
 /* ----------------------------------------------------------
+   FOTOS: escolhidas pelo botão ou arrastadas para o formulário
+   ---------------------------------------------------------- */
+async function setMainImage(file) {
+  if (!file) return;
+
+  try {
+    state.newFile = await resizeImage(file);
+    state.removeImage = false;
+    renderPreview(URL.createObjectURL(state.newFile));
+  } catch (err) {
+    $("formError").textContent = err.message;
+  }
+}
+
+async function addExtraImages(files) {
+  for (const file of files) {
+    if (state.extraKeep.length + state.extraNew.length >= MAX_EXTRA_IMAGES) {
+      $("formError").textContent = `O limite é de ${MAX_EXTRA_IMAGES} fotos extras.`;
+      break;
+    }
+    try {
+      const blob = await resizeImage(file);
+      state.extraNew.push({ blob, preview: URL.createObjectURL(blob) });
+      renderExtras();
+    } catch (err) {
+      $("formError").textContent = err.message;
+    }
+  }
+}
+
+const hasFiles = (e) => Array.from(e.dataTransfer ? e.dataTransfer.types : []).includes("Files");
+
+function setupDropZone(zone, onFiles) {
+  ["dragenter", "dragover"].forEach((type) =>
+    zone.addEventListener(type, (e) => {
+      if (!hasFiles(e)) return;
+      e.preventDefault();
+      zone.classList.add("drag");
+    })
+  );
+
+  zone.addEventListener("dragleave", (e) => {
+    if (!zone.contains(e.relatedTarget)) zone.classList.remove("drag");
+  });
+
+  zone.addEventListener("drop", (e) => {
+    if (!hasFiles(e)) return;
+    e.preventDefault();
+    zone.classList.remove("drag");
+
+    const files = Array.from(e.dataTransfer.files).filter((file) => file.type.startsWith("image/"));
+    if (!files.length) {
+      $("formError").textContent = "Solte apenas arquivos de imagem.";
+      return;
+    }
+    $("formError").textContent = "";
+    onFiles(files);
+  });
+}
+
+/* ----------------------------------------------------------
    EVENTOS
    ---------------------------------------------------------- */
 function bindEvents() {
@@ -845,17 +906,21 @@ function bindEvents() {
     if (toggle) toggleActive(toggle.dataset.toggle, toggle.checked);
   });
 
-  $("fFile").addEventListener("change", async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  $("fFile").addEventListener("change", (e) => setMainImage(e.target.files[0]));
 
-    try {
-      state.newFile = await resizeImage(file);
-      state.removeImage = false;
-      renderPreview(URL.createObjectURL(state.newFile));
-    } catch (err) {
-      $("formError").textContent = err.message;
-    }
+  /* Arrastar e soltar: na foto principal (a 1ª vira principal, as outras viram extras) e nas extras */
+  setupDropZone(document.querySelector(".image-field"), (files) => {
+    setMainImage(files[0]);
+    if (files.length > 1) addExtraImages(files.slice(1));
+  });
+  setupDropZone($("fExtras").closest(".extras"), addExtraImages);
+
+  /* Foto solta fora das áreas não pode abrir a imagem no navegador */
+  $("modal").addEventListener("dragover", (e) => {
+    if (hasFiles(e)) e.preventDefault();
+  });
+  $("modal").addEventListener("drop", (e) => {
+    if (hasFiles(e)) e.preventDefault();
   });
 
   /* Desconto: atualiza o campo certo e o preço final calculado */
@@ -863,23 +928,10 @@ function bindEvents() {
   $("fDiscountType").addEventListener("change", updateDiscountUI);
 
   /* Fotos extras do popup */
-  $("fExtraFiles").addEventListener("change", async (e) => {
+  $("fExtraFiles").addEventListener("change", (e) => {
     const files = [...e.target.files];
     e.target.value = "";
-
-    for (const file of files) {
-      if (state.extraKeep.length + state.extraNew.length >= MAX_EXTRA_IMAGES) {
-        $("formError").textContent = `O limite é de ${MAX_EXTRA_IMAGES} fotos extras.`;
-        break;
-      }
-      try {
-        const blob = await resizeImage(file);
-        state.extraNew.push({ blob, preview: URL.createObjectURL(blob) });
-      } catch (err) {
-        $("formError").textContent = err.message;
-      }
-    }
-    renderExtras();
+    addExtraImages(files);
   });
 
   $("fExtras").addEventListener("click", (e) => {

@@ -742,3 +742,16 @@ dialog textarea {
   color: var(--muted);
   text-decoration: line-through;
 }
+
+/* Áreas onde dá para arrastar e soltar fotos */
+.dropzone {
+  padding: 12px;
+  border: 1.5px dashed var(--line);
+  border-radius: 14px;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.dropzone.drag {
+  border-color: var(--gold-dark);
+  background: color-mix(in srgb, var(--gold) 25%, transparent);
+}
