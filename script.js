@@ -484,9 +484,81 @@ async function sendContact(event) {
 }
 
 /* ----------------------------------------------------------
+   ROLAGEM ANIMADA: passa pelo site até a seção e desacelera ao chegar
+   ---------------------------------------------------------- */
+let scrollAnimation = null;
+
+function cancelScrollAnimation() {
+  if (!scrollAnimation) return;
+  cancelAnimationFrame(scrollAnimation.frame);
+  document.documentElement.style.scrollBehavior = "";
+  scrollAnimation = null;
+}
+
+function scrollToSection(id) {
+  const target = id === "top" ? null : document.getElementById(id);
+  if (id !== "top" && !target) return;
+
+  const html = document.documentElement;
+  const padding = parseFloat(getComputedStyle(html).scrollPaddingTop) || 0;
+  const maxY = html.scrollHeight - window.innerHeight;
+  const to = target ? Math.min(maxY, Math.max(0, target.getBoundingClientRect().top + window.scrollY - padding)) : 0;
+  const from = window.scrollY;
+  const distance = to - from;
+
+  cancelScrollAnimation();
+  if (!distance) return;
+
+  /* Quanto mais longe, mais tempo leva (entre 0,7 e 1,8 segundo).
+     Quem pediu menos movimento no aparelho recebe só um deslize curto, sem pular direto. */
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const duration = reducedMotion
+    ? Math.min(450, Math.max(250, Math.abs(distance) * 0.25))
+    : Math.min(1800, Math.max(700, Math.abs(distance) * 0.7));
+  const startTime = performance.now();
+  const animation = { frame: 0 };
+  scrollAnimation = animation;
+
+  /* O CSS suaviza a rolagem sozinho; desliga durante a animação para ela não engasgar */
+  html.style.scrollBehavior = "auto";
+
+  const step = (now) => {
+    if (scrollAnimation !== animation) return; // foi cancelada ou substituída por outra
+    const t = Math.min(1, (now - startTime) / duration);
+    const eased = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; // acelera no começo e vai freando ao chegar
+    window.scrollTo(0, from + distance * eased);
+
+    if (t < 1) animation.frame = requestAnimationFrame(step);
+    else cancelScrollAnimation();
+  };
+
+  animation.frame = requestAnimationFrame(step);
+}
+
+/* ----------------------------------------------------------
    EVENTOS
    ---------------------------------------------------------- */
 function bindEvents() {
+  /* Links internos (menu, botões do topo): rolam com animação em vez de pular */
+  document.addEventListener("click", (event) => {
+    const link = event.target.closest('a[href^="#"]');
+    if (!link) return;
+
+    const id = link.getAttribute("href").slice(1);
+    if (!id || (id !== "top" && !document.getElementById(id))) return;
+
+    event.preventDefault();
+    scrollToSection(id);
+    try {
+      history.pushState(null, "", `#${id}`);
+    } catch {
+      /* sem histórico disponível: a rolagem funciona do mesmo jeito */
+    }
+  });
+
+  /* Se a pessoa rolar por conta própria durante a animação, ela para */
+  ["wheel", "touchstart", "keydown"].forEach((type) => window.addEventListener(type, cancelScrollAnimation, { passive: true }));
+
   /* Filtro por categoria */
   $("chips").addEventListener("click", (event) => {
     const chip = event.target.closest("[data-category]");
@@ -517,7 +589,7 @@ function bindEvents() {
 
     if (event.target.closest("[data-ask]")) {
       showToast("Fale conosco pela seção de contato");
-      location.hash = "contato";
+      scrollToSection("contato");
       return;
     }
 
@@ -540,7 +612,7 @@ function bindEvents() {
     closeProduct();
     if (product.price !== null) return addToCart(product.id);
     showToast("Fale conosco pela seção de contato");
-    location.hash = "contato";
+    scrollToSection("contato");
   });
   /* Clique fora do popup fecha; ao fechar, para a troca automática de fotos */
   modal.addEventListener("click", (event) => {
