@@ -32,7 +32,19 @@ const state = {
   editing: null, // produto sendo editado (null = novo)
   newFile: null, // arquivo de imagem escolhido (já reduzido)
   removeImage: false,
+  extraKeep: [], // URLs das fotos extras que continuam no produto
+  extraNew: [], // fotos extras novas: { blob, preview }
 };
+
+const MAX_EXTRA_IMAGES = 8;
+
+/* Preço final a partir do preço original e do desconto (em % ou em R$) */
+function computeFinalPrice(original, type, value) {
+  if (original === null) return null;
+  if (type === "percent") return Math.round(original * (1 - value / 100) * 100) / 100;
+  if (type === "amount") return Math.max(0, Math.round((original - value) * 100) / 100);
+  return original;
+}
 
 /* ----------------------------------------------------------
    SUPABASE
@@ -325,6 +337,14 @@ function thumbHTML(product) {
     : `<div class="thumb">${esc(initialOf(product.name))}</div>`;
 }
 
+function priceCell(p) {
+  if (p.price === null) return '<span class="muted">Sob consulta</span>';
+  const hasDiscount = p.original_price !== null && Number(p.original_price) > Number(p.price);
+  return hasDiscount
+    ? `${formatBRL(p.price)}<span class="was-price">${formatBRL(p.original_price)}</span>`
+    : formatBRL(p.price);
+}
+
 function renderRows() {
   const list = getVisible();
 
@@ -333,9 +353,9 @@ function renderRows() {
       (p) => `
       <tr class="${p.active ? "" : "off"}">
         <td>${thumbHTML(p)}</td>
-        <td class="name">${esc(p.name)}</td>
+        <td class="name">${p.brand ? `<span class="row-brand">${esc(p.brand)}</span>` : ""}${esc(p.name)}</td>
         <td class="muted">${esc(p.category)}</td>
-        <td class="nowrap">${p.price === null ? '<span class="muted">Sob consulta</span>' : formatBRL(p.price)}</td>
+        <td class="nowrap">${priceCell(p)}</td>
         <td>
           <label class="switch" title="Mostrar ou ocultar no site">
             <input type="checkbox" data-toggle="${p.id}" ${p.active ? "checked" : ""} aria-label="Visível no site" />
@@ -437,14 +457,51 @@ function fillCategorySelect(selected) {
   $("fCategory").disabled = names.length === 0;
 }
 
+/* Fotos extras do popup: as que já estão salvas + as recém-escolhidas */
+function renderExtras() {
+  const kept = state.extraKeep.map(
+    (url, i) => `<div class="extra"><img src="${esc(url)}" alt="" /><button type="button" data-extra-keep="${i}" aria-label="Remover foto">×</button></div>`
+  );
+  const added = state.extraNew.map(
+    (item, i) => `<div class="extra"><img src="${esc(item.preview)}" alt="" /><button type="button" data-extra-new="${i}" aria-label="Remover foto">×</button></div>`
+  );
+  $("fExtras").innerHTML = [...kept, ...added].join("");
+}
+
+/* Mostra o campo de desconto certo e o preço final calculado */
+function updateDiscountUI() {
+  const type = $("fDiscountType").value;
+  $("discountRow").hidden = !type;
+  $("fDiscountLabel").textContent = type === "amount" ? "Desconto (R$)" : "Desconto (%)";
+  $("fDiscountValue").placeholder = type === "amount" ? "Ex.: 20,00" : "Ex.: 20";
+
+  const original = parsePrice($("fPrice").value);
+  const value = parsePrice($("fDiscountValue").value);
+  const ready = type && original !== null && !Number.isNaN(original) && value !== null && !Number.isNaN(value);
+  $("finalPreview").textContent = ready ? `Preço final: ${formatBRL(computeFinalPrice(original, type, value))}` : "";
+}
+
 function openModal(product) {
   state.editing = product || null;
   state.newFile = null;
   state.removeImage = false;
+  state.extraKeep = product && Array.isArray(product.images) ? [...product.images] : [];
+  state.extraNew = [];
 
   $("modalTitle").textContent = product ? "Editar produto" : "Novo produto";
   $("fName").value = product ? product.name : "";
-  $("fPrice").value = product && product.price !== null ? String(product.price).replace(".", ",") : "";
+  $("fBrand").value = product && product.brand ? product.brand : "";
+  $("fKeywords").value = product && product.keywords ? product.keywords : "";
+  $("fDescription").value = product && product.description ? product.description : "";
+
+  /* O campo mostra o preço cheio; quando não há preço original salvo, é o próprio preço */
+  const full = product ? (product.original_price !== null && product.original_price !== undefined ? product.original_price : product.price) : null;
+  $("fPrice").value = full !== null ? String(full).replace(".", ",") : "";
+  $("fDiscountType").value = product && product.discount_type ? product.discount_type : "";
+  $("fDiscountValue").value = product && product.discount_value !== null && product.discount_value !== undefined ? String(product.discount_value).replace(".", ",") : "";
+  $("fExtraFiles").value = "";
+  renderExtras();
+  updateDiscountUI();
   fillCategorySelect(product ? product.category : "");
   $("fActive").checked = product ? product.active : true;
   $("fFile").value = "";
@@ -470,29 +527,78 @@ async function saveProduct(event) {
 
   const name = $("fName").value.trim();
   const category = $("fCategory").value;
-  const price = parsePrice($("fPrice").value);
+  const original = parsePrice($("fPrice").value);
+  const discountType = $("fDiscountType").value;
+  const discountValue = discountType ? parsePrice($("fDiscountValue").value) : null;
 
   if (!name || !category) {
-    $("formError").textContent = category ? "Informe o nome do produto." : "Escolha uma categoria. Se não houver nenhuma, crie em Categorias.";
+    $("formError").textContent = category ? "Informe o título do produto." : "Escolha uma categoria. Se não houver nenhuma, crie em Categorias.";
     return;
   }
-  if (Number.isNaN(price)) {
+  if (Number.isNaN(original)) {
     $("formError").textContent = "Preço inválido. Exemplo: 149,90";
     return;
   }
+  if (discountType) {
+    if (original === null) {
+      $("formError").textContent = "Informe o preço original para aplicar um desconto.";
+      return;
+    }
+    if (discountValue === null || Number.isNaN(discountValue) || discountValue <= 0) {
+      $("formError").textContent = "Informe um valor de desconto válido.";
+      return;
+    }
+    if (discountType === "percent" && discountValue >= 100) {
+      $("formError").textContent = "A porcentagem de desconto deve ser menor que 100.";
+      return;
+    }
+    if (discountType === "amount" && discountValue >= original) {
+      $("formError").textContent = "O desconto em reais deve ser menor que o preço original.";
+      return;
+    }
+  }
+
+  const price = computeFinalPrice(original, discountType, discountValue);
 
   const btn = $("saveBtn");
   btn.disabled = true;
   btn.textContent = "Salvando...";
 
+  const uploaded = []; // fotos enviadas agora: se o salvamento falhar, são apagadas
+
   try {
     const previous = state.editing ? state.editing.image_url : null;
     let image_url = previous;
 
-    if (state.newFile) image_url = await uploadImage(state.newFile);
-    else if (state.removeImage) image_url = null;
+    if (state.newFile) {
+      image_url = await uploadImage(state.newFile);
+      uploaded.push(image_url);
+    } else if (state.removeImage) {
+      image_url = null;
+    }
 
-    const payload = { name, category, price, image_url, active: $("fActive").checked };
+    const newExtras = [];
+    for (const item of state.extraNew) {
+      const url = await uploadImage(item.blob);
+      uploaded.push(url);
+      newExtras.push(url);
+    }
+    const images = [...state.extraKeep, ...newExtras];
+
+    const payload = {
+      name,
+      brand: $("fBrand").value.trim() || null,
+      category,
+      keywords: $("fKeywords").value.trim() || null,
+      description: $("fDescription").value.trim() || null,
+      price,
+      original_price: original,
+      discount_type: discountType || null,
+      discount_value: discountType ? discountValue : null,
+      image_url,
+      images,
+      active: $("fActive").checked,
+    };
 
     const query = state.editing
       ? db.from("products").update(payload).eq("id", state.editing.id)
@@ -501,14 +607,19 @@ async function saveProduct(event) {
     const { error } = await query;
     if (error) throw error;
 
-    /* Só apaga a foto antiga depois que o produto foi salvo com sucesso */
+    /* Só apaga as fotos antigas depois que o produto foi salvo com sucesso */
     if (previous && previous !== image_url) await deleteImage(previous);
+    const oldExtras = state.editing && Array.isArray(state.editing.images) ? state.editing.images : [];
+    for (const url of oldExtras) {
+      if (!images.includes(url)) await deleteImage(url);
+    }
 
     $("modal").close();
     showToast(state.editing ? "Produto atualizado" : "Produto adicionado");
     await loadProducts();
   } catch (err) {
     console.error(err);
+    for (const url of uploaded) await deleteImage(url);
     $("formError").textContent = "Não foi possível salvar. Tente novamente.";
   } finally {
     btn.disabled = false;
@@ -658,6 +769,7 @@ async function removeProduct(product) {
   }
 
   if (product.image_url) await deleteImage(product.image_url);
+  for (const url of Array.isArray(product.images) ? product.images : []) await deleteImage(url);
   showToast("Produto excluído");
   await loadProducts();
 }
@@ -744,6 +856,42 @@ function bindEvents() {
     } catch (err) {
       $("formError").textContent = err.message;
     }
+  });
+
+  /* Desconto: atualiza o campo certo e o preço final calculado */
+  ["fDiscountType", "fDiscountValue", "fPrice"].forEach((id) => $(id).addEventListener("input", updateDiscountUI));
+  $("fDiscountType").addEventListener("change", updateDiscountUI);
+
+  /* Fotos extras do popup */
+  $("fExtraFiles").addEventListener("change", async (e) => {
+    const files = [...e.target.files];
+    e.target.value = "";
+
+    for (const file of files) {
+      if (state.extraKeep.length + state.extraNew.length >= MAX_EXTRA_IMAGES) {
+        $("formError").textContent = `O limite é de ${MAX_EXTRA_IMAGES} fotos extras.`;
+        break;
+      }
+      try {
+        const blob = await resizeImage(file);
+        state.extraNew.push({ blob, preview: URL.createObjectURL(blob) });
+      } catch (err) {
+        $("formError").textContent = err.message;
+      }
+    }
+    renderExtras();
+  });
+
+  $("fExtras").addEventListener("click", (e) => {
+    const keep = e.target.closest("[data-extra-keep]");
+    if (keep) state.extraKeep.splice(Number(keep.dataset.extraKeep), 1);
+
+    const added = e.target.closest("[data-extra-new]");
+    if (added) {
+      const [removed] = state.extraNew.splice(Number(added.dataset.extraNew), 1);
+      URL.revokeObjectURL(removed.preview);
+    }
+    if (keep || added) renderExtras();
   });
 
   $("fRemoveImg").addEventListener("click", () => {

@@ -15,7 +15,7 @@
       href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=PT+Serif:wght@400;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="style.css?v=13" />
+    <link rel="stylesheet" href="style.css?v=14" />
   </head>
 
   <body>
@@ -204,6 +204,33 @@
       </div>
     </div>
 
+    <!-- ========== POPUP DO PRODUTO ========== -->
+    <dialog class="pm" id="productModal" aria-labelledby="pmName">
+      <button class="pm-close" id="pmClose" type="button" aria-label="Fechar">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+      </button>
+      <div class="pm-photo">
+        <div class="pm-slide" id="pmSlide"></div>
+        <span id="pmBadge"></span>
+        <button class="pm-arrow prev" id="pmPrev" type="button" aria-label="Foto anterior">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6" /></svg>
+        </button>
+        <button class="pm-arrow next" id="pmNext" type="button" aria-label="Próxima foto">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
+        </button>
+        <div class="pm-dots" id="pmDots"></div>
+      </div>
+      <div class="pm-body">
+        <p class="pm-cat" id="pmCat"></p>
+        <h2 id="pmName"></h2>
+        <p class="pm-brand" id="pmBrand"></p>
+        <p class="pm-keys" id="pmKeys"></p>
+        <p class="pm-desc" id="pmDesc"></p>
+        <div class="pm-price" id="pmPrice"></div>
+        <button class="btn block" id="pmAdd" type="button">Adicionar ao carrinho</button>
+      </div>
+    </dialog>
+
     <div class="toast" id="toast"></div>
 
     <script
@@ -213,6 +240,6 @@
     ></script>
     <script src="config.js"></script>
     <script src="cookies.js"></script>
-    <script src="script.js?v=7"></script>
+    <script src="script.js?v=8"></script>
   </body>
 </html>

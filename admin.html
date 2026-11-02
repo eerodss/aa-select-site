@@ -26,7 +26,7 @@
       }
     </script>
     <link rel="stylesheet" href="style.css?v=6" />
-    <link rel="stylesheet" href="admin.css?v=5" />
+    <link rel="stylesheet" href="admin.css?v=6" />
   </head>
 
   <body>
@@ -102,20 +102,53 @@
       <form id="productForm">
         <h2 id="modalTitle">Novo produto</h2>
 
-        <label>
-          Nome
-          <input id="fName" required maxlength="120" />
-        </label>
-
         <div class="two">
           <label>
-            Preço (R$)
-            <input id="fPrice" inputmode="decimal" placeholder="Vazio = Sob consulta" />
+            Marca
+            <input id="fBrand" maxlength="80" placeholder="Ex.: Victoria's Secret" />
           </label>
           <label>
             Categoria
             <select id="fCategory" required></select>
           </label>
+        </div>
+
+        <label>
+          Título (nome do produto)
+          <input id="fName" required maxlength="120" placeholder="Ex.: Love Spell 250 ml" />
+        </label>
+
+        <label>
+          Palavras-chave
+          <input id="fKeywords" maxlength="200" placeholder="Ex.: Floral frutal · Cereja e pêssego · Longa duração" />
+        </label>
+
+        <label>
+          Descrição
+          <textarea id="fDescription" rows="4" maxlength="1500" placeholder="Texto que aparece ao ampliar o produto"></textarea>
+        </label>
+
+        <div class="two">
+          <label>
+            Preço original (R$)
+            <input id="fPrice" inputmode="decimal" placeholder="Vazio = Sob consulta" />
+          </label>
+          <label>
+            Desconto
+            <select id="fDiscountType">
+              <option value="">Sem desconto</option>
+              <option value="percent">Em porcentagem (%)</option>
+              <option value="amount">Em valor (R$)</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="two" id="discountRow" hidden>
+          <label>
+            <span id="fDiscountLabel">Desconto (%)</span>
+            <input id="fDiscountValue" inputmode="decimal" placeholder="Ex.: 20" />
+          </label>
+          <p class="final-price" id="finalPreview" aria-live="polite"></p>
         </div>
 
         <div class="image-field">
@@ -126,8 +159,20 @@
               <input type="file" id="fFile" accept="image/*" hidden />
             </label>
             <button type="button" class="btn ghost small" id="fRemoveImg" hidden>Remover foto</button>
-            <p class="hint">A foto é reduzida automaticamente para carregar rápido.</p>
+            <p class="hint">Foto principal do card. Ela é reduzida automaticamente para carregar rápido.</p>
           </div>
+        </div>
+
+        <div class="extras">
+          <div class="extras-head">
+            <span>Fotos extras do popup</span>
+            <label class="btn ghost small file">
+              Adicionar fotos
+              <input type="file" id="fExtraFiles" accept="image/*" multiple hidden />
+            </label>
+          </div>
+          <div class="extras-list" id="fExtras"></div>
+          <p class="hint">Até 8 fotos extras. No popup, elas passam depois da foto principal.</p>
         </div>
 
         <label class="check">
@@ -197,6 +242,6 @@
       crossorigin="anonymous"
     ></script>
     <script src="config.js?v=4"></script>
-    <script src="admin.js?v=6"></script>
+    <script src="admin.js?v=7"></script>
   </body>
 </html>

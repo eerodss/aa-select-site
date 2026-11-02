@@ -649,3 +649,96 @@ dialog select {
     display: none;
   }
 }
+
+/* Campos novos do produto: descrição, desconto e fotos extras */
+dialog textarea {
+  padding: 12px 14px;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  font: 400 15px Montserrat, sans-serif;
+  text-transform: none;
+  letter-spacing: 0;
+  resize: vertical;
+}
+
+.final-price {
+  align-self: end;
+  margin: 0;
+  padding: 12px 0;
+  font: 600 14px Montserrat, sans-serif;
+  color: var(--text);
+}
+
+.extras {
+  display: grid;
+  gap: 10px;
+}
+
+.extras-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.extras-head .btn {
+  margin: 0;
+  cursor: pointer;
+}
+
+.extras-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.extra {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+}
+
+.extra img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.extra button {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.65);
+  color: #fff;
+  font: 700 13px/1 Montserrat, sans-serif;
+  cursor: pointer;
+}
+
+.row-brand {
+  display: block;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.was-price {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  text-decoration: line-through;
+}
