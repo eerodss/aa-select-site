@@ -13,6 +13,10 @@
   --accent: #323b52;
   --accent-dark: #1f2638;
   --on-accent: #ffffff;
+  --gold: #e9d39a;
+  --gold-dark: #d4b46a;
+  --gold-text: #8a6d2b;
+  --on-gold: #2b3347;
   box-sizing: border-box;
   padding-top: env(safe-area-inset-top, 0px);
   padding-bottom: env(safe-area-inset-bottom, 0px);
@@ -29,6 +33,8 @@
     --accent: #aebbe0;
     --accent-dark: #c8d2ee;
     --on-accent: #141925;
+    --gold-text: #e9d39a;
+    --on-gold: #141925;
   }
 }
 
@@ -41,6 +47,8 @@
   --accent: #aebbe0;
   --accent-dark: #c8d2ee;
   --on-accent: #141925;
+  --gold-text: #e9d39a;
+  --on-gold: #141925;
 }
 
 /* Base */
@@ -74,7 +82,7 @@ a {
 
 /* Foco visível para teclado (sem aparecer no clique do mouse) */
 :focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--gold-text);
   outline-offset: 3px;
 }
 
@@ -239,8 +247,8 @@ header {
 
 .btn {
   display: inline-block;
-  background: var(--accent);
-  color: var(--on-accent);
+  background: var(--gold);
+  color: var(--on-gold);
   padding: 14px 30px;
   border-radius: 99px;
   font: 600 13px "Figtree";
@@ -252,7 +260,7 @@ header {
 }
 
 .btn:hover {
-  background: var(--accent-dark);
+  background: var(--gold-dark);
   transform: translateY(-1px);
 }
 
@@ -434,7 +442,8 @@ section {
 }
 
 .search:focus {
-  border-color: var(--accent);
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold) 45%, transparent);
 }
 
 .chips {
@@ -591,7 +600,7 @@ section {
 
 .price {
   font-weight: 600;
-  color: var(--accent);
+  color: var(--gold-text);
   font-size: 17px;
 }
 
@@ -604,9 +613,9 @@ section {
 
 .add {
   margin-top: auto;
-  background: var(--accent);
-  border: 1px solid var(--accent);
-  color: var(--on-accent);
+  background: var(--gold);
+  border: 1px solid var(--gold);
+  color: var(--on-gold);
   padding: 11px;
   border-radius: 10px;
   font: 600 12px "Figtree";
@@ -617,18 +626,19 @@ section {
 }
 
 .add:hover {
-  background: var(--accent-dark);
-  border-color: var(--accent-dark);
+  background: var(--gold-dark);
+  border-color: var(--gold-dark);
 }
 
 .add.outline {
   background: none;
-  color: var(--accent);
+  color: var(--gold-text);
+  border-color: var(--gold);
 }
 
 .add.outline:hover {
-  background: var(--accent);
-  color: var(--on-accent);
+  background: var(--gold);
+  color: var(--on-gold);
 }
 
 .add:active {
