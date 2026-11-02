@@ -888,7 +888,33 @@ section {
   font-size: 14px;
   line-height: 1.6;
   color: var(--muted);
-  scrollbar-width: thin;
+}
+
+/* Barra de rolagem da descrição: fina, arredondada e dourada (Chrome, Edge e Safari) */
+.pm-desc::-webkit-scrollbar {
+  width: 6px;
+}
+
+.pm-desc::-webkit-scrollbar-track {
+  background: color-mix(in srgb, var(--line) 55%, transparent);
+  border-radius: 99px;
+}
+
+.pm-desc::-webkit-scrollbar-thumb {
+  background: var(--gold-dark);
+  border-radius: 99px;
+}
+
+.pm-desc::-webkit-scrollbar-button {
+  display: none;
+}
+
+/* Firefox */
+@supports (-moz-appearance: none) {
+  .pm-desc {
+    scrollbar-width: thin;
+    scrollbar-color: var(--gold-dark) color-mix(in srgb, var(--line) 55%, transparent);
+  }
 }
 
 .pm-desc p {
