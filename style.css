@@ -884,6 +884,14 @@ section {
   color: var(--muted);
 }
 
+.pm-desc p {
+  margin: 0 0 14px;
+}
+
+.pm-desc p:last-child {
+  margin-bottom: 0;
+}
+
 .pm-price {
   display: flex;
   align-items: baseline;

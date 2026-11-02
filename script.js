@@ -195,7 +195,12 @@ function openProduct(id) {
   setText("pmName", product.name);
   setText("pmBrand", product.brand);
   setText("pmKeys", product.keywords);
-  setText("pmDesc", product.description);
+
+  /* Cada linha da descrição vira um parágrafo, com espaço entre eles */
+  const paragraphs = (product.description || "").split(/\n+/).map((line) => line.trim()).filter(Boolean);
+  $("pmDesc").innerHTML = paragraphs.map((line) => `<p>${esc(line)}</p>`).join("");
+  $("pmDesc").hidden = !paragraphs.length;
+
   $("pmPrice").innerHTML = priceHTML(product);
   $("pmAdd").textContent = product.price !== null ? "Adicionar ao carrinho" : "Solicitar orçamento";
 
