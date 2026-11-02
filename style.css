@@ -59,6 +59,12 @@
 html {
   scroll-behavior: smooth;
   scroll-padding-top: calc(96px + env(safe-area-inset-top, 0px));
+  scrollbar-gutter: stable; /* a página não "dança" quando a rolagem é travada */
+}
+
+/* Com o popup do produto aberto, o site atrás não rola */
+html.modal-open {
+  overflow: hidden;
 }
 
 body {
@@ -736,6 +742,13 @@ section {
 
 .pm::backdrop {
   background: rgba(15, 20, 32, .6);
+}
+
+/* Ao chegar no fim da descrição, a rolagem não passa para o site */
+.pm,
+.pm-body,
+.pm-desc {
+  overscroll-behavior: contain;
 }
 
 .pm-photo {

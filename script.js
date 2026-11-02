@@ -206,6 +206,8 @@ function openProduct(id) {
 
   renderSlide();
   startSlideTimer();
+  cancelScrollAnimation();
+  document.documentElement.classList.add("modal-open");
   $("productModal").showModal();
 }
 
@@ -618,7 +620,10 @@ function bindEvents() {
   modal.addEventListener("click", (event) => {
     if (event.target === modal) closeProduct();
   });
-  modal.addEventListener("close", () => clearInterval(popup.timer));
+  modal.addEventListener("close", () => {
+    clearInterval(popup.timer);
+    document.documentElement.classList.remove("modal-open");
+  });
   modal.addEventListener("keydown", (event) => {
     if (event.key === "ArrowLeft") goToSlide(popup.index - 1);
     if (event.key === "ArrowRight") goToSlide(popup.index + 1);
