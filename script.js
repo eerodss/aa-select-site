@@ -131,11 +131,11 @@ function productCard(product) {
     : esc(initialOf(product.name));
 
   return `
-    <article class="card">
+    <article class="card" data-open="${esc(product.id)}">
       <div class="ph">
         ${visual}
         ${discountBadge(product)}
-        <button class="zoom" data-zoom="${esc(product.id)}" aria-label="Ver ${esc(product.name)} ampliado">${ICONS.expand}</button>
+        <button class="zoom" aria-label="Ver ${esc(product.name)} ampliado">${ICONS.expand}</button>
       </div>
       <div class="info">
         ${product.brand ? `<span class="brand">${esc(product.brand)}</span>` : ""}
@@ -510,13 +510,15 @@ function bindEvents() {
     const add = event.target.closest("[data-add]");
     if (add) return addToCart(add.dataset.add);
 
-    const zoom = event.target.closest("[data-zoom]");
-    if (zoom) return openProduct(zoom.dataset.zoom);
-
     if (event.target.closest("[data-ask]")) {
       showToast("Fale conosco pela seção de contato");
       location.hash = "contato";
+      return;
     }
+
+    /* Clicar em qualquer parte do card (foto, nome, ícone de ampliar) abre o popup */
+    const card = event.target.closest("[data-open]");
+    if (card) openProduct(card.dataset.open);
   });
 
   /* Popup do produto */
