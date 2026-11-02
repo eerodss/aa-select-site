@@ -15,7 +15,7 @@
       href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=PT+Serif:wght@400;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="style.css?v=8" />
+    <link rel="stylesheet" href="style.css?v=10" />
   </head>
 
   <body>
@@ -23,7 +23,6 @@
     <header>
       <div class="floating-bar">
         <a class="logo" href="#top">
-          <span class="logo-mark" aria-hidden="true"></span>
           A&amp;A <b>SELECT</b>
         </a>
 
@@ -169,7 +168,10 @@
     <footer>
       <div class="wrap">
         <span>© 2026 A&amp;A Select Importados. Todos os direitos reservados.</span>
-        <span>Termos e Condições · Política de Privacidade</span>
+        <span>
+          Termos e Condições · Política de Privacidade ·
+          <button class="link-btn" id="cookieSettings" type="button">Preferências de cookies</button>
+        </span>
       </div>
     </footer>
 
@@ -187,6 +189,21 @@
       </div>
     </div>
 
+    <!-- ========== AVISO DE COOKIES ========== -->
+    <div class="cookie-banner" id="cookieBanner" role="dialog" aria-labelledby="cookieTitle">
+      <div class="cookie-text">
+        <strong id="cookieTitle">Este site usa cookies</strong>
+        <p>
+          Usamos cookies essenciais para o funcionamento do site. Com a sua permissão, também usamos cookies de análise e
+          publicidade. Você pode mudar de ideia a qualquer momento em Preferências de cookies, no rodapé.
+        </p>
+      </div>
+      <div class="cookie-actions">
+        <button class="cookie-btn ghost" type="button" data-cookie-choice="essential">Só essenciais</button>
+        <button class="cookie-btn" type="button" data-cookie-choice="accepted">Aceitar</button>
+      </div>
+    </div>
+
     <div class="toast" id="toast"></div>
 
     <script
@@ -195,6 +212,7 @@
       crossorigin="anonymous"
     ></script>
     <script src="config.js"></script>
+    <script src="cookies.js"></script>
     <script src="script.js?v=7"></script>
   </body>
 </html>
